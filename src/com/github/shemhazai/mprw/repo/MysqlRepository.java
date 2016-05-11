@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.github.shemhazai.mprw.domain.River;
 import com.github.shemhazai.mprw.domain.RiverStatus;
+import com.github.shemhazai.mprw.domain.User;
 
 @Repository
 public class MysqlRepository implements AppRepository {
@@ -51,6 +52,16 @@ public class MysqlRepository implements AppRepository {
 				+ " default character set utf8 default collate utf8_general_ci";
 		jdbcTemplate.update(sql);
 
+	}
+
+	@Override
+	public void createUserTableIfNotExists() {
+		String sql = "create table if not exists `user` ("
+				+ "`id` int(11) auto_increment not null,`firstName` varchar(256),"
+				+ "`lastName` varchar(256),`email` varchar(256),`passwordHash` varchar(1024),"
+				+ "`verified` int(2), primary key(`id`)) default character set utf8 "
+				+ "default collate utf8_general_ci";
+		jdbcTemplate.update(sql);
 	}
 
 	@Override
@@ -113,6 +124,16 @@ public class MysqlRepository implements AppRepository {
 	}
 
 	@Override
+	public RiverStatus selectLastRiverStatusByRiverId(int riverId) {
+		try {
+			String sql = "select * from riverStatus where riverId = ? order by date desc limit 1";
+			return jdbcTemplate.queryForObject(sql, new Object[] { riverId }, new RiverStatusMapper());
+		} catch (EmptyResultDataAccessException e) {
+			return null;
+		}
+	}
+
+	@Override
 	public List<RiverStatus> selectAllRiverStatuses() {
 		String sql = "select * from riverStatus";
 		return jdbcTemplate.query(sql, new RiverStatusMapper());
@@ -150,6 +171,62 @@ public class MysqlRepository implements AppRepository {
 	@Override
 	public void deleteRiverStatus(int id) {
 		String sql = "delete from riverStatus where id = ?";
+		jdbcTemplate.update(sql, new Object[] { id });
+	}
+
+	@Override
+	public User selectUserById(int id) {
+		try {
+			String sql = "select * from user where id = ?";
+			return jdbcTemplate.queryForObject(sql, new Object[] { id }, new UserMapper());
+		} catch (EmptyResultDataAccessException e) {
+			return null;
+		}
+	}
+
+	@Override
+	public User selectUserByEmail(String email) {
+		try {
+			String sql = "select * from user where email = ?";
+			return jdbcTemplate.queryForObject(sql, new Object[] { email }, new UserMapper());
+		} catch (EmptyResultDataAccessException e) {
+			return null;
+		}
+	}
+
+	@Override
+	public List<User> selectAllUsers() {
+		String sql = "select * from user";
+		return jdbcTemplate.query(sql, new UserMapper());
+	}
+
+	@Override
+	public boolean existsUserWithEmail(String email) {
+		String sql = "select count(*) from user where email = ?";
+		return jdbcTemplate.queryForObject(sql, new Object[] { email }, Integer.class) != 0;
+	}
+
+	@Override
+	public User createUser(String email) {
+		String sql = "insert into user (email) values (?)";
+		jdbcTemplate.update(sql, new Object[] { email });
+
+		sql = "select max(id) from user";
+		int id = jdbcTemplate.queryForObject(sql, Integer.class);
+		return selectUserById(id);
+	}
+
+	@Override
+	public void updateUser(int id, User user) {
+		String sql = "update user set firstName = ?, lastName = ?, email = ?,"
+				+ "passwordHash = ?, verified = ? where id = ?";
+		jdbcTemplate.update(sql, new Object[] { user.getFirstName(), user.getLastName(), user.getEmail(),
+				user.getPasswordHash(), user.isVerified() == true ? 1 : 0, id });
+	}
+
+	@Override
+	public void deleteUser(int id) {
+		String sql = "delete from user where id = ?";
 		jdbcTemplate.update(sql, new Object[] { id });
 	}
 }

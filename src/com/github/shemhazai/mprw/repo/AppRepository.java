@@ -5,10 +5,12 @@ import java.util.List;
 
 import com.github.shemhazai.mprw.domain.River;
 import com.github.shemhazai.mprw.domain.RiverStatus;
+import com.github.shemhazai.mprw.domain.User;
 
 public interface AppRepository {
 	public void createRiverTableIfNotExists();
 	public void createRiverStatusTableIfNotExists();
+	public void createUserTableIfNotExists();
 	
 	public River selectRiverById(int id);
 	public River selectRiverByName(String name);
@@ -19,6 +21,7 @@ public interface AppRepository {
 	public void deleteRiver(int id);
 	
 	public RiverStatus selectRiverStatusById(int id);
+	public RiverStatus selectLastRiverStatusByRiverId(int riverId);
 	public List<RiverStatus> selectAllRiverStatuses();
 	public List<RiverStatus> selectRiverStatusesByRiverId(int riverId);
 	
@@ -27,4 +30,15 @@ public interface AppRepository {
 	public RiverStatus createRiverStatus(int riverId);
 	public void updateRiverStatus(int id, RiverStatus riverStatus);
 	public void deleteRiverStatus(int id);
+	
+	public User selectUserById(int id);
+	public User selectUserByEmail(String email);
+	public List<User> selectAllUsers();
+	
+	public boolean existsUserWithEmail(String email);
+	
+	public User createUser(String email);
+	public void updateUser(int id, User user);
+	public void deleteUser(int id);
+	
 }

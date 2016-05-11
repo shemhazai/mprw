@@ -1,4 +1,4 @@
-package com.github.shemhazai.mprw.utils;
+package com.github.shemhazai.mprw.data;
 
 import java.io.IOException;
 import java.text.DateFormat;
