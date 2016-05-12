@@ -22,9 +22,9 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
-import com.github.shemhazai.mprw.data.DataAnalizer;
 import com.github.shemhazai.mprw.data.DataCollector;
 import com.github.shemhazai.mprw.domain.River;
+import com.github.shemhazai.mprw.domain.RiverStatus;
 import com.github.shemhazai.mprw.domain.User;
 import com.github.shemhazai.mprw.repo.AppRepository;
 import com.github.shemhazai.mprw.utils.MailSender;
@@ -39,9 +39,6 @@ public class AppInitializer implements WebApplicationInitializer {
 
 	@Autowired
 	private DataCollector collector;
-
-	@Autowired
-	private DataAnalizer analizer;
 
 	@Autowired
 	private MailSender mailSender;
@@ -64,14 +61,6 @@ public class AppInitializer implements WebApplicationInitializer {
 
 	public void setCollector(DataCollector collector) {
 		this.collector = collector;
-	}
-
-	public DataAnalizer getAnalizer() {
-		return analizer;
-	}
-
-	public void setAnalizer(DataAnalizer analizer) {
-		this.analizer = analizer;
 	}
 
 	public MailSender getMailSender() {
@@ -125,42 +114,51 @@ public class AppInitializer implements WebApplicationInitializer {
 	// TODO sformatować wiadomość
 	@Scheduled(fixedDelay = 1800000)
 	public void analizeData() {
-		boolean floodLevelReached = analizer.isFloodLevelReached();
-		boolean alertLevelReached = analizer.isAlertLevelReached();
 
-		if (floodLevelReached || alertLevelReached) {
-			String title = "Ostrzeżenie o stanie " + (floodLevelReached ? "powodziowym." : "alarmowym.");
-			String message = buildMessage(floodLevelReached);
-			List<String> recipients = buildRecipients();
+		List<River> listOfRiver = selectRiversInDanger();
 
-			logger.warn(message);
-			mailSender.sendMailToMany(recipients, title, message);
+		if (!listOfRiver.isEmpty()) {
+			String title = "Ostrzeżenie o zagrożeniu powodziowym.";
+
+			StringBuilder builder = new StringBuilder();
+			builder.append("Uwaga.\n");
+			builder.append("Stan zagrożenia powodziowego na rzekach:\n");
+
+			for (River river : listOfRiver) {
+				builder.append(" * " + river.getDescription());
+				builder.append(", obecny poziom: " + lastRiverLevel(river.getId()) + "cm");
+				builder.append(", poziom powodziowy: " + river.getFloodLevel() + "cm");
+				builder.append(", poziom alarmowy: " + river.getAlertLevel() + "cm.\n");
+			}
+
+			List<String> recipients = selectVerifiedRecipients();
+
+			logger.warn(builder.toString());
+			mailSender.sendMailToMany(recipients, title, builder.toString());
 		}
 	}
 
-	private String buildMessage(boolean flood) {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Uwaga.\n");
-		builder.append("Stan " + (flood ? "powodziowy" : "alarmowy") + " został osiągnięty w punktach:\n");
+	private List<River> selectRiversInDanger() {
+		List<River> listOfRiver = new ArrayList<>();
+		for (River river : repository.selectAllRivers()) {
+			RiverStatus riverStatus = repository.selectLastRiverStatusByRiverId(river.getId());
+			if (riverStatus == null)
+				continue;
 
-		List<River> listOfRiver = (flood ? analizer.getRiversWithFloodLevelReached()
-				: analizer.getRiversWithAlertLevelReached());
-
-		for (River river : listOfRiver) {
-			builder.append(" * " + river.getDescription());
-			builder.append(", poziom powodziowy: " + river.getFloodLevel() + "cm");
-			builder.append(", poziom alarmowy: " + river.getAlertLevel() + "cm");
-			builder.append(", obecny poziom: " + lastRiverLevel(river.getId()) + "cm.\n");
+			int level = riverStatus.getLevel();
+			int floodLevel = river.getFloodLevel();
+			int alertLevel = river.getAlertLevel();
+			if (floodLevel <= level || alertLevel <= level)
+				listOfRiver.add(river);
 		}
-
-		return builder.toString();
+		return listOfRiver;
 	}
 
 	private int lastRiverLevel(int riverId) {
 		return repository.selectLastRiverStatusByRiverId(riverId).getLevel();
 	}
 
-	private List<String> buildRecipients() {
+	private List<String> selectVerifiedRecipients() {
 		List<String> recipients = new ArrayList<>();
 		for (User user : repository.selectAllUsers()) {
 			if (user.isVerified())

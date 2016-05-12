@@ -1,0 +1,70 @@
+package com.github.shemhazai.mprw.config;
+
+import java.text.SimpleDateFormat;
+import java.util.Properties;
+
+import javax.sql.DataSource;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.shemhazai.mprw.utils.MailSender;
+
+@Configuration
+public class Bean1 {
+	@Bean
+	public JdbcTemplate jdbcTemplate() {
+		return new JdbcTemplate(dataSource());
+	}
+
+	@Bean
+	public ObjectMapper objectMapper() {
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm"));
+		return objectMapper;
+	}
+
+	@Bean
+	public String baseUrl() {
+		return "http://www.ropczyce.prospect.pl";
+	}
+
+	@Bean
+	public DataSource dataSource() {
+		DriverManagerDataSource dataSource = new DriverManagerDataSource();
+		dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+		dataSource.setUrl("jdbc:mysql://yourdburl:3306/yourdb");
+		dataSource.setUsername("username");
+		dataSource.setPassword("password");
+		return dataSource;
+	}
+
+	@Bean
+	public DataSourceTransactionManager transactionManager() {
+		return new DataSourceTransactionManager(dataSource());
+	}
+
+	@Bean
+	public MailSender mailSender() {
+		return new MailSender(mailProperties());
+	}
+
+	private Properties mailProperties() {
+		Properties props = new Properties();
+		props.setProperty("mail.transport.protocol", "smtp");
+		props.setProperty("mail.host", "smtp.gmail.com");
+		props.setProperty("mail.smtp.auth", "true");
+		props.setProperty("mail.smtp.port", "465");
+		props.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+		props.setProperty("mail.smtp.socketFactory.fallback", "false");
+		props.setProperty("email", "yourlogin@gmail.com");
+		props.setProperty("login", "yourlogin");
+		props.setProperty("password", "yourpassword");
+		props.setProperty("admin", "adminlogin@server.com");
+		return props;
+	}
+}
