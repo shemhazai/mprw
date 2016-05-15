@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.shemhazai.mprw.utils.MailSender;
 
 @Configuration
-public class Bean1 {
+public class Beans {
 	@Bean
 	public JdbcTemplate jdbcTemplate() {
 		return new JdbcTemplate(dataSource());
@@ -64,7 +64,6 @@ public class Bean1 {
 		props.setProperty("email", "yourlogin@gmail.com");
 		props.setProperty("login", "yourlogin");
 		props.setProperty("password", "yourpassword");
-		props.setProperty("admin", "adminlogin@server.com");
 		return props;
 	}
 }

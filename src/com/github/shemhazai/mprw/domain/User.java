@@ -4,34 +4,18 @@ import java.io.Serializable;
 
 public class User implements Serializable {
 
-	private static final long serialVersionUID = 8156996190839986481L;
+	private static final long serialVersionUID = -1095994647013771174L;
 
-	private int id;
 	private String firstName;
 	private String lastName;
 	private String email;
-	private String passwordHash;
-	private boolean verified;
-
-	public User(int id, String firstName, String lastName, String email, String passwordHash, boolean verified) {
-		this.id = id;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.email = email;
-		this.passwordHash = passwordHash;
-		this.verified = verified;
-	}
+	private String password;
+	private String phone;
+	private boolean mailAlert;
+	private boolean phoneAlert;
 
 	public User() {
 
-	}
-
-	public static long getSerialversionuid() {
-		return serialVersionUID;
-	}
-
-	public int getId() {
-		return id;
 	}
 
 	public String getFirstName() {
@@ -46,16 +30,20 @@ public class User implements Serializable {
 		return email;
 	}
 
-	public String getPasswordHash() {
-		return passwordHash;
+	public String getPassword() {
+		return password;
 	}
 
-	public boolean isVerified() {
-		return verified;
+	public String getPhone() {
+		return phone;
 	}
 
-	public void setId(int id) {
-		this.id = id;
+	public boolean isMailAlert() {
+		return mailAlert;
+	}
+
+	public boolean isPhoneAlert() {
+		return phoneAlert;
 	}
 
 	public void setFirstName(String firstName) {
@@ -70,12 +58,20 @@ public class User implements Serializable {
 		this.email = email;
 	}
 
-	public void setPasswordHash(String passwordHash) {
-		this.passwordHash = passwordHash;
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
-	public void setVerified(boolean verified) {
-		this.verified = verified;
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public void setMailAlert(boolean mailAlert) {
+		this.mailAlert = mailAlert;
+	}
+
+	public void setPhoneAlert(boolean phoneAlert) {
+		this.phoneAlert = phoneAlert;
 	}
 
 	@Override
@@ -84,10 +80,11 @@ public class User implements Serializable {
 		int result = 1;
 		result = prime * result + ((email == null) ? 0 : email.hashCode());
 		result = prime * result + ((firstName == null) ? 0 : firstName.hashCode());
-		result = prime * result + id;
 		result = prime * result + ((lastName == null) ? 0 : lastName.hashCode());
-		result = prime * result + ((passwordHash == null) ? 0 : passwordHash.hashCode());
-		result = prime * result + (verified ? 1231 : 1237);
+		result = prime * result + (mailAlert ? 1231 : 1237);
+		result = prime * result + ((password == null) ? 0 : password.hashCode());
+		result = prime * result + ((phone == null) ? 0 : phone.hashCode());
+		result = prime * result + (phoneAlert ? 1231 : 1237);
 		return result;
 	}
 
@@ -110,26 +107,35 @@ public class User implements Serializable {
 				return false;
 		} else if (!firstName.equals(other.firstName))
 			return false;
-		if (id != other.id)
-			return false;
 		if (lastName == null) {
 			if (other.lastName != null)
 				return false;
 		} else if (!lastName.equals(other.lastName))
 			return false;
-		if (passwordHash == null) {
-			if (other.passwordHash != null)
-				return false;
-		} else if (!passwordHash.equals(other.passwordHash))
+		if (mailAlert != other.mailAlert)
 			return false;
-		if (verified != other.verified)
+		if (password == null) {
+			if (other.password != null)
+				return false;
+		} else if (!password.equals(other.password))
+			return false;
+		if (phone == null) {
+			if (other.phone != null)
+				return false;
+		} else if (!phone.equals(other.phone))
+			return false;
+		if (phoneAlert != other.phoneAlert)
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "User [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email
-				+ ", passwordHash=" + passwordHash + ", verified=" + verified + "]";
+		return "User [firstName=" + firstName + ", lastName=" + lastName + ", email=" + email + ", password=" + password
+				+ ", phone=" + phone + ", mailAlert=" + mailAlert + ", phoneAlert=" + phoneAlert + "]";
 	}
+	
+	
+
+
 }

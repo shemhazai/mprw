@@ -12,14 +12,6 @@ public class River implements Serializable {
 	private int floodLevel;
 	private int alertLevel;
 
-	public River(int id, String name, String description, int floodLevel, int alertLevel) {
-		this.id = id;
-		this.name = name;
-		this.description = description;
-		this.floodLevel = floodLevel;
-		this.alertLevel = alertLevel;
-	}
-
 	public River() {
 
 	}

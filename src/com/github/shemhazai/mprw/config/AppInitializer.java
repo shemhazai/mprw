@@ -24,51 +24,70 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 import com.github.shemhazai.mprw.data.DataCollector;
 import com.github.shemhazai.mprw.domain.River;
-import com.github.shemhazai.mprw.domain.RiverStatus;
-import com.github.shemhazai.mprw.domain.User;
-import com.github.shemhazai.mprw.repo.AppRepository;
-import com.github.shemhazai.mprw.utils.MailSender;
+import com.github.shemhazai.mprw.domain.HashedUser;
+import com.github.shemhazai.mprw.notify.MailNotifier;
+import com.github.shemhazai.mprw.repo.RiverRepository;
+import com.github.shemhazai.mprw.repo.RiverStatusRepository;
+import com.github.shemhazai.mprw.repo.HashedUserRepository;
 
 @Configuration
 public class AppInitializer implements WebApplicationInitializer {
 
-	private Logger logger = Logger.getLogger(getClass());
+	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
-	private AppRepository repository;
-
+	private RiverRepository riverRepository;
+	@Autowired
+	private RiverStatusRepository riverStatusRepository;
+	@Autowired
+	private HashedUserRepository userRepository;
 	@Autowired
 	private DataCollector collector;
-
 	@Autowired
-	private MailSender mailSender;
+	private MailNotifier mailNotifier;
 
 	public AppInitializer() {
 
 	}
 
-	public AppRepository getRepository() {
-		return repository;
+	public RiverRepository getRiverRepository() {
+		return riverRepository;
 	}
 
-	public void setRepository(AppRepository repository) {
-		this.repository = repository;
+	public RiverStatusRepository getRiverStatusRepository() {
+		return riverStatusRepository;
+	}
+
+	public HashedUserRepository getUserRepository() {
+		return userRepository;
 	}
 
 	public DataCollector getCollector() {
 		return collector;
 	}
 
+	public MailNotifier getMailNotifier() {
+		return mailNotifier;
+	}
+
+	public void setRiverRepository(RiverRepository riverRepository) {
+		this.riverRepository = riverRepository;
+	}
+
+	public void setRiverStatusRepository(RiverStatusRepository riverStatusRepository) {
+		this.riverStatusRepository = riverStatusRepository;
+	}
+
+	public void setUserRepository(HashedUserRepository userRepository) {
+		this.userRepository = userRepository;
+	}
+
 	public void setCollector(DataCollector collector) {
 		this.collector = collector;
 	}
 
-	public MailSender getMailSender() {
-		return mailSender;
-	}
-
-	public void setMailSender(MailSender mailSender) {
-		this.mailSender = mailSender;
+	public void setMailNotifier(MailNotifier mailNotifier) {
+		this.mailNotifier = mailNotifier;
 	}
 
 	@Override
@@ -84,9 +103,9 @@ public class AppInitializer implements WebApplicationInitializer {
 
 	@PostConstruct
 	public void postConstruct() {
-		repository.createRiverTableIfNotExists();
-		repository.createRiverStatusTableIfNotExists();
-		repository.createUserTableIfNotExists();
+		riverRepository.createRiverTableIfNotExists();
+		riverStatusRepository.createRiverStatusTableIfNotExists();
+		userRepository.createUserTableIfNotExists();
 	}
 
 	@Scheduled(fixedDelay = 600000)
@@ -106,16 +125,14 @@ public class AppInitializer implements WebApplicationInitializer {
 			builder.append(stackTrace + "\n");
 
 			logger.error(e.getMessage(), e);
-			mailSender.sendMailToAdmin("Errors when collecting data.", builder.toString());
+			mailNotifier.notifyOne(mailNotifier.getAdminEmail(), "Errors when collecting data.", builder.toString());
 		}
 	}
 
-	// TODO sprawdzanie czy powiadomienie zostało już wysłane
-	// TODO sformatować wiadomość
 	@Scheduled(fixedDelay = 1800000)
 	public void analizeData() {
 
-		List<River> listOfRiver = selectRiversInDanger();
+		List<River> listOfRiver = riverRepository.selectRiversInDanger();
 
 		if (!listOfRiver.isEmpty()) {
 			String title = "Ostrzeżenie o zagrożeniu powodziowym.";
@@ -131,40 +148,17 @@ public class AppInitializer implements WebApplicationInitializer {
 				builder.append(", poziom alarmowy: " + river.getAlertLevel() + "cm.\n");
 			}
 
-			List<String> recipients = selectVerifiedRecipients();
+			List<HashedUser> users = userRepository.selectUsersWithEmailAlert();
+			List<String> contacts = new ArrayList<>();
+			users.forEach((u) -> contacts.add(u.getEmail()));
 
 			logger.warn(builder.toString());
-			mailSender.sendMailToMany(recipients, title, builder.toString());
+			mailNotifier.notifyEveryone(contacts, title, builder.toString());
 		}
-	}
 
-	private List<River> selectRiversInDanger() {
-		List<River> listOfRiver = new ArrayList<>();
-		for (River river : repository.selectAllRivers()) {
-			RiverStatus riverStatus = repository.selectLastRiverStatusByRiverId(river.getId());
-			if (riverStatus == null)
-				continue;
-
-			int level = riverStatus.getLevel();
-			int floodLevel = river.getFloodLevel();
-			int alertLevel = river.getAlertLevel();
-			if (floodLevel <= level || alertLevel <= level)
-				listOfRiver.add(river);
-		}
-		return listOfRiver;
 	}
 
 	private int lastRiverLevel(int riverId) {
-		return repository.selectLastRiverStatusByRiverId(riverId).getLevel();
+		return riverStatusRepository.selectLastRiverStatusByRiverId(riverId).getLevel();
 	}
-
-	private List<String> selectVerifiedRecipients() {
-		List<String> recipients = new ArrayList<>();
-		for (User user : repository.selectAllUsers()) {
-			if (user.isVerified())
-				recipients.add(user.getEmail());
-		}
-		return recipients;
-	}
-
 }

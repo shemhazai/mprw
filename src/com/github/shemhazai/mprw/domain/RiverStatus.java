@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.github.shemhazai.mprw.utils.JsonDateSerializer;
+import com.github.shemhazai.mprw.data.JsonDateSerializer;
 
 public class RiverStatus implements Serializable {
 
@@ -15,13 +15,6 @@ public class RiverStatus implements Serializable {
 	@JsonSerialize(using = JsonDateSerializer.class)
 	private Date date;
 	private int level;
-
-	public RiverStatus(int id, int riverId, Date date, int level) {
-		this.id = id;
-		this.riverId = riverId;
-		this.date = date;
-		this.level = level;
-	}
 
 	public RiverStatus() {
 

@@ -18,21 +18,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.github.shemhazai.mprw.domain.River;
 import com.github.shemhazai.mprw.domain.RiverStatus;
-import com.github.shemhazai.mprw.repo.AppRepository;
+import com.github.shemhazai.mprw.repo.RiverRepository;
+import com.github.shemhazai.mprw.repo.RiverStatusRepository;
 
 @Component
 public class DataCollectorImpl implements DataCollector {
 
 	@Autowired
 	private String baseUrl;
-
 	@Autowired
-	private AppRepository repository;
-
-	public DataCollectorImpl(String baseUrl, AppRepository repository) {
-		this.baseUrl = baseUrl;
-		this.repository = repository;
-	}
+	private RiverRepository riverRepository;
+	@Autowired
+	private RiverStatusRepository riverStatusRepository;
 
 	public DataCollectorImpl() {
 
@@ -42,27 +39,35 @@ public class DataCollectorImpl implements DataCollector {
 		return baseUrl;
 	}
 
+	public RiverRepository getRiverRepository() {
+		return riverRepository;
+	}
+
+	public RiverStatusRepository getRiverStatusRepository() {
+		return riverStatusRepository;
+	}
+
 	public void setBaseUrl(String baseUrl) {
 		this.baseUrl = baseUrl;
 	}
 
-	public AppRepository getRepository() {
-		return repository;
+	public void setRiverRepository(RiverRepository riverRepository) {
+		this.riverRepository = riverRepository;
 	}
 
-	public void setRepository(AppRepository repository) {
-		this.repository = repository;
+	public void setRiverStatusRepository(RiverStatusRepository riverStatusRepository) {
+		this.riverStatusRepository = riverStatusRepository;
 	}
 
 	public void collect() throws IOException, ParseException {
-		for (River river : repository.selectAllRivers())
+		for (River river : riverRepository.selectAllRivers())
 			collectFromRiver(river);
 	}
 
 	@Transactional
 	private void collectFromRiver(River river) throws IOException, ParseException {
 		String year = Calendar.getInstance().get(Calendar.YEAR) + "";
-		String urlString = createUrlString(river);
+		String urlString = createUrlString(river.getName());
 
 		Connection connection = Jsoup.connect(urlString);
 		Document document = connection.get();
@@ -76,20 +81,19 @@ public class DataCollectorImpl implements DataCollector {
 			DateFormat dateFormat = new SimpleDateFormat("HH:mm-dd.MM.yyyy");
 			Date date = dateFormat.parse(columns.get(0).text() + "." + year);
 
-			if (repository.existsRiverStatusWithRiverIdAndDate(river.getId(), date))
+			if (riverStatusRepository.existsRiverStatusWithRiverIdAndDate(river.getId(), date))
 				continue;
 
 			int level = Integer.parseInt(columns.get(1).text());
 
-			RiverStatus riverStatus = repository.createRiverStatus(river.getId());
+			RiverStatus riverStatus = riverStatusRepository.createRiverStatus(river.getId());
 			riverStatus.setDate(date);
 			riverStatus.setLevel(level);
-			repository.updateRiverStatus(riverStatus.getId(), riverStatus);
+			riverStatusRepository.updateRiverStatus(riverStatus.getId(), riverStatus);
 		}
 	}
 
-	private String createUrlString(River river) {
-		return (baseUrl.endsWith("/") ? baseUrl : baseUrl + "/") + "wizualizacja/punkt_pomiarowy.php?prze="
-				+ river.getName();
+	private String createUrlString(String riverName) {
+		return (baseUrl.endsWith("/") ? baseUrl : baseUrl + "/") + "wizualizacja/punkt_pomiarowy.php?prze=" + riverName;
 	}
 }
