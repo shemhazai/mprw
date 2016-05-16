@@ -10,11 +10,11 @@ public interface RiverStatusRepository {
 
 	public RiverStatus selectRiverStatusById(int id);
 
-	public RiverStatus selectLastRiverStatusByRiverId(int riverId);
-
 	public List<RiverStatus> selectAllRiverStatuses();
 
-	public List<RiverStatus> selectRiverStatusesByRiverId(int riverId);
+	public List<RiverStatus> selectAllRiverStatusesByRiverId(int riverId);
+	
+	public List<RiverStatus> selectLastRiverStatusesByRiverIdLimit(int riverId, int limit);
 
 	public boolean existsRiverStatusWithRiverIdAndDate(int riverId, Date date);
 

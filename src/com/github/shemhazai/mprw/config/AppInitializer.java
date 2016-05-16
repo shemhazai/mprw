@@ -23,12 +23,13 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 import org.springframework.web.servlet.DispatcherServlet;
 
 import com.github.shemhazai.mprw.data.DataCollector;
-import com.github.shemhazai.mprw.domain.River;
 import com.github.shemhazai.mprw.domain.DbUser;
+import com.github.shemhazai.mprw.domain.River;
+import com.github.shemhazai.mprw.domain.RiverStatus;
 import com.github.shemhazai.mprw.notify.MailNotifier;
+import com.github.shemhazai.mprw.repo.DbUserRepository;
 import com.github.shemhazai.mprw.repo.RiverRepository;
 import com.github.shemhazai.mprw.repo.RiverStatusRepository;
-import com.github.shemhazai.mprw.repo.DbUserRepository;
 
 @Configuration
 public class AppInitializer implements WebApplicationInitializer {
@@ -159,6 +160,7 @@ public class AppInitializer implements WebApplicationInitializer {
 	}
 
 	private int lastRiverLevel(int riverId) {
-		return riverStatusRepository.selectLastRiverStatusByRiverId(riverId).getLevel();
+		List<RiverStatus> list = riverStatusRepository.selectLastRiverStatusesByRiverIdLimit(riverId, 1);
+		return list.get(0).getLevel();
 	}
 }

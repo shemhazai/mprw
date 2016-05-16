@@ -50,25 +50,21 @@ public class RiverStatusRepositoryImpl implements RiverStatusRepository {
 	}
 
 	@Override
-	public RiverStatus selectLastRiverStatusByRiverId(int riverId) {
-		try {
-			String sql = "select * from riverStatus where riverId = ? order by date desc limit 1";
-			return jdbcTemplate.queryForObject(sql, new Object[] { riverId }, new RiverStatusMapper());
-		} catch (EmptyResultDataAccessException e) {
-			return null;
-		}
-	}
-
-	@Override
 	public List<RiverStatus> selectAllRiverStatuses() {
 		String sql = "select * from riverStatus";
 		return jdbcTemplate.query(sql, new RiverStatusMapper());
 	}
 
 	@Override
-	public List<RiverStatus> selectRiverStatusesByRiverId(int riverId) {
-		String sql = "select * from riverStatus where riverId = ?";
+	public List<RiverStatus> selectAllRiverStatusesByRiverId(int riverId) {
+		String sql = "select * from riverStatus where riverId = ? order by date desc";
 		return jdbcTemplate.query(sql, new Object[] { riverId }, new RiverStatusMapper());
+	}
+
+	@Override
+	public List<RiverStatus> selectLastRiverStatusesByRiverIdLimit(int riverId, int limit) {
+		String sql = "select * from riverStatus where riverId = ? order by date desc limit ?";
+		return jdbcTemplate.query(sql, new Object[] { riverId, limit }, new RiverStatusMapper());
 	}
 
 	@Override
