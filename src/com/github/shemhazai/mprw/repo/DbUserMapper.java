@@ -5,13 +5,13 @@ import java.sql.SQLException;
 
 import org.springframework.jdbc.core.RowMapper;
 
-import com.github.shemhazai.mprw.domain.HashedUser;
+import com.github.shemhazai.mprw.domain.DbUser;
 
-public class HashedUserMapper implements RowMapper<HashedUser> {
+public class DbUserMapper implements RowMapper<DbUser> {
 
 	@Override
-	public HashedUser mapRow(ResultSet rs, int counter) throws SQLException {
-		HashedUser user = new HashedUser();
+	public DbUser mapRow(ResultSet rs, int counter) throws SQLException {
+		DbUser user = new DbUser();
 		user.setId(rs.getInt("id"));
 		user.setFirstName(rs.getString("firstName"));
 		user.setLastName(rs.getString("lastName"));

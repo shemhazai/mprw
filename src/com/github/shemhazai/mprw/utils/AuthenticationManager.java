@@ -3,9 +3,7 @@ package com.github.shemhazai.mprw.utils;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.security.sasl.AuthenticationException;
 
@@ -14,88 +12,90 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.github.shemhazai.mprw.domain.HashedUser;
-import com.github.shemhazai.mprw.repo.HashedUserRepository;
+import com.github.shemhazai.mprw.domain.DbUser;
+import com.github.shemhazai.mprw.repo.DbUserRepository;
 
 @Component
 @Scope("singleton")
 public class AuthenticationManager {
 
 	@Autowired
-	private HashedUserRepository userRepository;
-	private Map<String, String> userTokens;
-	private Map<String, Date> tokenExpire;
-	private HashGenerator hashGenerator;
+	private DbUserRepository userRepository;
+	private List<Token> tokens;
 
 	public AuthenticationManager() {
-		userTokens = new HashMap<>();
-		tokenExpire = new HashMap<>();
-		hashGenerator = new HashGenerator();
+		tokens = new ArrayList<>();
 	}
 
 	@Scheduled(fixedDelay = 900000)
 	public void deleteTokens() {
-		List<String> tokens = new ArrayList<>();
+		List<Token> tokensExpired = new ArrayList<>();
 		Date now = new Date();
 
-		for (Map.Entry<String, Date> expire : tokenExpire.entrySet()) {
-			if (now.after(expire.getValue()))
-				tokens.add(expire.getKey());
-		}
-
 		tokens.forEach((token) -> {
-			for (Map.Entry<String, String> user : userTokens.entrySet()) {
-				if (token.equalsIgnoreCase(user.getValue())) {
-					userTokens.remove(user.getKey());
-					break;
-				}
-			}
-			tokenExpire.remove(token);
+			if (now.after(token.getExpireDate()))
+				tokensExpired.add(token);
 		});
+		tokens.removeAll(tokensExpired);
 	}
 
 	public synchronized String createToken(String email, String password) throws AuthenticationException {
 		if (userRepository.existsUserWithEmail(email)) {
-			HashedUser user = userRepository.selectUserByEmail(email);
-			String passwordHash = hashGenerator.hash(password);
+			DbUser dbUser = userRepository.selectUserByEmail(email);
 
-			if (passwordHash.equalsIgnoreCase(user.getPassword())) {
+			HashGenerator hasher = new HashGenerator();
+			String passwordHash = hasher.hash(password);
+
+			if (passwordHash.equalsIgnoreCase(dbUser.getPassword())) {
 				StringBuilder builder = new StringBuilder();
-				builder.append(user.getEmail());
-				builder.append(user.getPassword());
+				builder.append(dbUser.getId());
+				builder.append(dbUser.getEmail());
+				builder.append(dbUser.getPassword());
 				builder.append(new Date());
 
-				String token = hashGenerator.hash(builder.toString());
-				userTokens.put(user.getEmail(), token);
-				tokenExpire.put(token, dateAfterOneHour());
+				Token token = new Token();
+				token.setToken(hasher.hash(builder.toString()));
+				token.setEmail(dbUser.getEmail());
+				token.setExpireDate(dateAfterOneHour());
+				tokens.add(token);
 
-				return token;
+				return token.getToken();
 			}
 		}
 
 		throw new AuthenticationException("User not found!");
 	}
 
-	public boolean isTokenActive(String token) {
-		boolean result = userTokens.containsValue(token);
+	public boolean isTokenActive(String tokenHash) {
+		Token theToken = null;
+		for (Token token : tokens) {
+			if (tokenHash.equalsIgnoreCase(token.getToken())) {
+				theToken = token;
+				break;
+			}
+		}
 
-		if (result)
-			tokenExpire.put(token, dateAfterOneHour());
+		if (theToken != null)
+			theToken.setExpireDate(dateAfterOneHour());
 
-		return result;
+		return theToken != null;
 	}
 
-	public boolean isTokenActiveByEmail(String token, String email) {
-		String savedToken = userTokens.get(email);
-		if (savedToken == null)
-			return false;
+	public boolean isTokenActiveByEmail(String tokenHash, String email) {
+		Token theToken = null;
+		for (Token token : tokens) {
+			if (email.equalsIgnoreCase(token.getEmail())) {
+				theToken = token;
+				break;
+			}
+		}
 
-		boolean result = savedToken.equalsIgnoreCase(token);
+		if (theToken != null && tokenHash.equalsIgnoreCase(theToken.getToken())) {
+			theToken.setExpireDate(dateAfterOneHour());
+			return true;
+		}
 
-		if (result)
-			tokenExpire.put(token, dateAfterOneHour());
-
-		return result;
+		return false;
 	}
 
 	private Date dateAfterOneHour() {
@@ -105,11 +105,11 @@ public class AuthenticationManager {
 		return calendar.getTime();
 	}
 
-	public HashedUserRepository getUserRepository() {
+	public DbUserRepository getUserRepository() {
 		return userRepository;
 	}
 
-	public void setUserRepository(HashedUserRepository userRepository) {
+	public void setUserRepository(DbUserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
 

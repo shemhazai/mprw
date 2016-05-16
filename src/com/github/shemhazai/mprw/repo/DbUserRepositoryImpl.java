@@ -8,15 +8,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.github.shemhazai.mprw.domain.HashedUser;
+import com.github.shemhazai.mprw.domain.DbUser;
 
 @Repository
-public class HashedUserRepositoryImpl implements HashedUserRepository {
+public class DbUserRepositoryImpl implements DbUserRepository {
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
-	public HashedUserRepositoryImpl() {
+	public DbUserRepositoryImpl() {
 
 	}
 
@@ -39,35 +39,35 @@ public class HashedUserRepositoryImpl implements HashedUserRepository {
 	}
 
 	@Override
-	public HashedUser selectUserById(int id) {
+	public DbUser selectUserById(int id) {
 		try {
 			String sql = "select * from user where id = ?";
-			return jdbcTemplate.queryForObject(sql, new Object[] { id }, new HashedUserMapper());
+			return jdbcTemplate.queryForObject(sql, new Object[] { id }, new DbUserMapper());
 		} catch (EmptyResultDataAccessException e) {
 			return null;
 		}
 	}
 
 	@Override
-	public HashedUser selectUserByEmail(String email) {
+	public DbUser selectUserByEmail(String email) {
 		try {
 			String sql = "select * from user where email = ?";
-			return jdbcTemplate.queryForObject(sql, new Object[] { email }, new HashedUserMapper());
+			return jdbcTemplate.queryForObject(sql, new Object[] { email }, new DbUserMapper());
 		} catch (EmptyResultDataAccessException e) {
 			return null;
 		}
 	}
 
 	@Override
-	public List<HashedUser> selectAllUsers() {
+	public List<DbUser> selectAllUsers() {
 		String sql = "select * from user";
-		return jdbcTemplate.query(sql, new HashedUserMapper());
+		return jdbcTemplate.query(sql, new DbUserMapper());
 	}
 
 	@Override
-	public List<HashedUser> selectUsersWithEmailAlert() {
+	public List<DbUser> selectUsersWithEmailAlert() {
 		String sql = "select * from user where mailAlert != 0 and verified != 0";
-		return jdbcTemplate.query(sql, new HashedUserMapper());
+		return jdbcTemplate.query(sql, new DbUserMapper());
 	}
 
 	@Override
@@ -78,7 +78,7 @@ public class HashedUserRepositoryImpl implements HashedUserRepository {
 
 	@Override
 	@Transactional
-	public HashedUser createUser(String email) {
+	public DbUser createUser(String email) {
 		String sql = "insert into user (email) values (?)";
 		jdbcTemplate.update(sql, new Object[] { email });
 
@@ -88,7 +88,7 @@ public class HashedUserRepositoryImpl implements HashedUserRepository {
 	}
 
 	@Override
-	public void updateUser(int id, HashedUser user) {
+	public void updateUser(int id, DbUser user) {
 		String sql = "update user set firstName = ?, lastName = ?, email = ?, phone = ?,"
 				+ "passwordHash = ?, verified = ?, mailAlert = ?, phoneAlert = ? where id = ?";
 		jdbcTemplate.update(sql,

@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.github.shemhazai.mprw.domain.HashedUser;
+import com.github.shemhazai.mprw.domain.DbUser;
 import com.github.shemhazai.mprw.domain.User;
-import com.github.shemhazai.mprw.repo.HashedUserRepository;
+import com.github.shemhazai.mprw.repo.DbUserRepository;
 import com.github.shemhazai.mprw.utils.AuthenticationManager;
 import com.github.shemhazai.mprw.utils.HashGenerator;
 import com.github.shemhazai.mprw.utils.UserValidator;
@@ -22,14 +22,9 @@ import com.github.shemhazai.mprw.utils.UserValidator;
 public class UserController {
 
 	@Autowired
-	private HashedUserRepository userRepository;
+	private DbUserRepository userRepository;
 	@Autowired
 	private AuthenticationManager authenticationManager;
-	private HashGenerator hashGenerator;
-
-	public UserController() {
-		hashGenerator = new HashGenerator();
-	}
 
 	@RequestMapping(value = "/createToken", method = RequestMethod.POST)
 	public String createToken(@RequestBody String[] pass) {
@@ -46,15 +41,17 @@ public class UserController {
 		if (!validator.validate(user) || userRepository.existsUserWithEmail(user.getEmail()))
 			return false;
 
-		HashedUser hashedUser = userRepository.createUser(user.getEmail());
-		hashedUser.setFirstName(user.getFirstName());
-		hashedUser.setLastName(user.getLastName());
-		hashedUser.setPassword(hashGenerator.hash(user.getPassword()));
-		hashedUser.setPhone(user.getPhone());
-		hashedUser.setMailAlert(user.isMailAlert());
-		hashedUser.setPhoneAlert(user.isPhoneAlert());
+		HashGenerator hasher = new HashGenerator();
 
-		userRepository.updateUser(hashedUser.getId(), hashedUser);
+		DbUser dbUser = userRepository.createUser(user.getEmail());
+		dbUser.setFirstName(user.getFirstName());
+		dbUser.setLastName(user.getLastName());
+		dbUser.setPassword(hasher.hash(user.getPassword()));
+		dbUser.setPhone(user.getPhone());
+		dbUser.setMailAlert(user.isMailAlert());
+		dbUser.setPhoneAlert(user.isPhoneAlert());
+
+		userRepository.updateUser(dbUser.getId(), dbUser);
 
 		return true;
 	}
@@ -90,15 +87,17 @@ public class UserController {
 			if (!validator.validate(user) || !authenticationManager.isTokenActiveByEmail(token, user.getEmail()))
 				return false;
 
-			HashedUser hashedUser = userRepository.selectUserByEmail(user.getEmail());
-			hashedUser.setFirstName(user.getFirstName());
-			hashedUser.setLastName(user.getLastName());
-			hashedUser.setPassword(hashGenerator.hash(user.getPassword()));
-			hashedUser.setPhone(user.getPhone());
-			hashedUser.setMailAlert(user.isMailAlert());
-			hashedUser.setPhoneAlert(user.isPhoneAlert());
+			HashGenerator hasher = new HashGenerator();
 
-			userRepository.updateUser(hashedUser.getId(), hashedUser);
+			DbUser dbUser = userRepository.selectUserByEmail(user.getEmail());
+			dbUser.setFirstName(user.getFirstName());
+			dbUser.setLastName(user.getLastName());
+			dbUser.setPassword(hasher.hash(user.getPassword()));
+			dbUser.setPhone(user.getPhone());
+			dbUser.setMailAlert(user.isMailAlert());
+			dbUser.setPhoneAlert(user.isPhoneAlert());
+
+			userRepository.updateUser(dbUser.getId(), dbUser);
 
 			return true;
 		} catch (Exception e) {
@@ -106,11 +105,11 @@ public class UserController {
 		}
 	}
 
-	public HashedUserRepository getUserRepository() {
+	public DbUserRepository getUserRepository() {
 		return userRepository;
 	}
 
-	public void setUserRepository(HashedUserRepository userRepository) {
+	public void setUserRepository(DbUserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
 

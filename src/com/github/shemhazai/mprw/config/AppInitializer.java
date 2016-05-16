@@ -24,11 +24,11 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 import com.github.shemhazai.mprw.data.DataCollector;
 import com.github.shemhazai.mprw.domain.River;
-import com.github.shemhazai.mprw.domain.HashedUser;
+import com.github.shemhazai.mprw.domain.DbUser;
 import com.github.shemhazai.mprw.notify.MailNotifier;
 import com.github.shemhazai.mprw.repo.RiverRepository;
 import com.github.shemhazai.mprw.repo.RiverStatusRepository;
-import com.github.shemhazai.mprw.repo.HashedUserRepository;
+import com.github.shemhazai.mprw.repo.DbUserRepository;
 
 @Configuration
 public class AppInitializer implements WebApplicationInitializer {
@@ -40,7 +40,7 @@ public class AppInitializer implements WebApplicationInitializer {
 	@Autowired
 	private RiverStatusRepository riverStatusRepository;
 	@Autowired
-	private HashedUserRepository userRepository;
+	private DbUserRepository userRepository;
 	@Autowired
 	private DataCollector collector;
 	@Autowired
@@ -58,7 +58,7 @@ public class AppInitializer implements WebApplicationInitializer {
 		return riverStatusRepository;
 	}
 
-	public HashedUserRepository getUserRepository() {
+	public DbUserRepository getUserRepository() {
 		return userRepository;
 	}
 
@@ -78,7 +78,7 @@ public class AppInitializer implements WebApplicationInitializer {
 		this.riverStatusRepository = riverStatusRepository;
 	}
 
-	public void setUserRepository(HashedUserRepository userRepository) {
+	public void setUserRepository(DbUserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
 
@@ -148,7 +148,7 @@ public class AppInitializer implements WebApplicationInitializer {
 				builder.append(", poziom alarmowy: " + river.getAlertLevel() + "cm.\n");
 			}
 
-			List<HashedUser> users = userRepository.selectUsersWithEmailAlert();
+			List<DbUser> users = userRepository.selectUsersWithEmailAlert();
 			List<String> contacts = new ArrayList<>();
 			users.forEach((u) -> contacts.add(u.getEmail()));
 

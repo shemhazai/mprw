@@ -2,14 +2,14 @@ package com.github.shemhazai.mprw.domain;
 
 import java.io.Serializable;
 
-public class HashedUser extends User implements Serializable {
+public class DbUser extends User implements Serializable {
 
 	private static final long serialVersionUID = 8156996190839986481L;
 
 	private int id;
 	private boolean verified;
 
-	public HashedUser() {
+	public DbUser() {
 
 	}
 
@@ -46,7 +46,7 @@ public class HashedUser extends User implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		HashedUser other = (HashedUser) obj;
+		DbUser other = (DbUser) obj;
 		if (id != other.id)
 			return false;
 		if (verified != other.verified)
