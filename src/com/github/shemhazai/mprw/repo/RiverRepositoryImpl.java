@@ -69,7 +69,7 @@ public class RiverRepositoryImpl implements RiverRepository {
 
 	@Override
 	public List<River> selectRiversInDanger() {
-		String sql = "select r.* from river as r inner join riverStatus as rs "
+		String sql = "select distinct r.* from river as r inner join riverStatus as rs "
 				+ "on r.id = rs.riverId where r.alertLevel <= rs.level";
 		return jdbcTemplate.query(sql, new RiverMapper());
 	}

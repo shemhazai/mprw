@@ -2,6 +2,8 @@ package com.github.shemhazai.mprw.domain;
 
 import java.io.Serializable;
 
+import com.github.shemhazai.mprw.utils.HashGenerator;
+
 public class DbUser extends User implements Serializable {
 
 	private static final long serialVersionUID = 8156996190839986481L;
@@ -56,11 +58,10 @@ public class DbUser extends User implements Serializable {
 
 	@Override
 	public String toString() {
-		return "HashedUser [id=" + id + ", verified=" + verified + ", firstName=" + getFirstName() + ", lastName="
+		return "DbUser [id=" + id + ", verified=" + verified + ", firstName=" + getFirstName() + ", lastName="
 				+ getLastName() + ", email=" + getEmail() + ", password=" + getPassword() + ", phone=" + getPhone()
 				+ ", verified=" + isVerified() + ", mailAlert=" + isMailAlert() + ", phoneAlert=" + isPhoneAlert()
 				+ "]";
-
 	}
 
 	public User toUser() {
@@ -73,6 +74,22 @@ public class DbUser extends User implements Serializable {
 		user.setMailAlert(isMailAlert());
 		user.setPhoneAlert(isPhoneAlert());
 		return user;
+	}
+
+	public DbUser fromUser(User user) {
+		HashGenerator hasher = new HashGenerator();
+
+		DbUser dbUser = new DbUser();
+		dbUser.setId(id);
+		dbUser.setVerified(verified);
+		dbUser.setFirstName(user.getFirstName());
+		dbUser.setLastName(user.getLastName());
+		dbUser.setEmail(user.getEmail());
+		dbUser.setPhone(user.getPhone());
+		dbUser.setPassword(hasher.hash(user.getPassword()));
+		dbUser.setMailAlert(user.isMailAlert());
+		dbUser.setPhoneAlert(user.isPhoneAlert());
+		return dbUser;
 	}
 
 }

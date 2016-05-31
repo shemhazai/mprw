@@ -1,5 +1,7 @@
 package com.github.shemhazai.mprw.utils;
 
+import java.util.regex.Pattern;
+
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
@@ -13,10 +15,13 @@ public class UserValidator {
 		if (!validatePassword(user.getPassword()))
 			return false;
 
-		if (!validatePartOfName(user.getFirstName()))
+		if (!validateName(user.getFirstName()))
 			return false;
 
-		if (!validatePartOfName(user.getLastName()))
+		if (!validateName(user.getLastName()))
+			return false;
+
+		if (!validatePhone(user.getPhone()))
 			return false;
 
 		return true;
@@ -39,8 +44,12 @@ public class UserValidator {
 		return password != null && password.length() >= 6;
 	}
 
-	private boolean validatePartOfName(String part) {
+	private boolean validateName(String part) {
 		return part != null && part.length() != 0;
+	}
+
+	private boolean validatePhone(String phone) {
+		return phone != null && Pattern.matches("(\\d){9}", phone);
 	}
 
 }
