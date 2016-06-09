@@ -68,6 +68,25 @@ public class RiverStatusRepositoryImpl implements RiverStatusRepository {
 	}
 
 	@Override
+	public List<RiverStatus> selectLastAverageRiverStatusesByRiverIdWithIntervalLimit(int riverId, String interval,
+			int limit) {
+		StringBuilder sql = new StringBuilder();
+		sql.append("select id, riverId, date, round(avg(level), 0) as level from riverStatus "
+				+ "where riverId = ? group by ");
+		if (interval.equalsIgnoreCase("month")) {
+			sql.append("concat(year(date), '/', month(date), '/', day(date))");
+		} else if (interval.equalsIgnoreCase("week")) {
+			sql.append("concat(year(date), '/', week(date))");
+		} else if (interval.equalsIgnoreCase("day")) {
+			sql.append("concat(year(date), '/', month(date), '/', day(date))");
+		} else {
+			return null;
+		}
+		sql.append(" order by date desc limit ?");
+		return jdbcTemplate.query(sql.toString(), new Object[] { riverId, limit }, new RiverStatusMapper());
+	}
+
+	@Override
 	public boolean existsRiverStatusWithRiverIdAndDate(int riverId, Date date) {
 		String sql = "select count(*) from riverStatus where riverId = ? and date = ?";
 		return jdbcTemplate.queryForObject(sql, new Object[] { riverId, date }, Integer.class) != 0;

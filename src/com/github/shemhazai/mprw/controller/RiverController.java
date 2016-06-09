@@ -31,15 +31,21 @@ public class RiverController {
 	public List<River> selectRiversInDanger() {
 		return riverRepository.selectRiversInDanger();
 	}
-	
+
 	@RequestMapping(value = "/selectAllRiverStatusesByRiverId/{riverId}", method = RequestMethod.GET)
 	public List<RiverStatus> selectAllRiverStatusesByRiverId(@PathVariable int riverId) {
 		return riverStatusRepository.selectAllRiverStatusesByRiverId(riverId);
 	}
-	
+
 	@RequestMapping(value = "/selectLastRiverStatusesByRiverId/{riverId}/Limit/{limit}", method = RequestMethod.GET)
 	public List<RiverStatus> selectLastRiverStatusesByRiverIdLimit(@PathVariable int riverId, @PathVariable int limit) {
 		return riverStatusRepository.selectLastRiverStatusesByRiverIdLimit(riverId, limit);
+	}
+
+	@RequestMapping(value = "/selectLastAverageRiverStatusesByRiverId/{riverId}/WithInterval/{interval}/Limit/{limit}")
+	public List<RiverStatus> selectLastAverageRiverStatusesByRiverIdWithIntervalLimit(@PathVariable int riverId,
+			@PathVariable String interval, @PathVariable int limit) {
+		return riverStatusRepository.selectLastAverageRiverStatusesByRiverIdWithIntervalLimit(riverId, interval, limit);
 	}
 
 	public RiverRepository getRiverRepository() {
