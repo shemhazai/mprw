@@ -1,5 +1,6 @@
 package com.github.shemhazai.mprw.controller;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.security.sasl.AuthenticationException;
@@ -38,7 +39,7 @@ public class UserController {
 		try {
 			return authenticationManager.createToken(pass[0], pass[1]);
 		} catch (AuthenticationException e) {
-			return "Unauthorized";
+			return "UNAUTHORIZED";
 		}
 	}
 
@@ -77,8 +78,12 @@ public class UserController {
 	}
 
 	@RequestMapping(value = "/verify/{verifyString}", method = RequestMethod.GET)
-	public void verify(@PathVariable String verifyString) {
-		verificationManager.verify(verifyString);
+	public String verify(@PathVariable String verifyString) {
+		if (verificationManager.verify(verifyString)) {
+			return "Konto zostało zweryfikowane!";
+		} else {
+			return "Blad! Konto nie istnieje.";
+		}
 	}
 
 	@RequestMapping(value = "/selectUserByEmail", method = RequestMethod.POST)
@@ -88,6 +93,7 @@ public class UserController {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/updateUser", method = RequestMethod.POST)
 	public boolean updateUser(@RequestBody Object[] tokenAndUser) {
 		if (tokenAndUser.length != 2)
@@ -95,21 +101,19 @@ public class UserController {
 
 		try {
 			String token = (String) tokenAndUser[0];
-
-			@SuppressWarnings("rawtypes")
-			Map map = (Map) tokenAndUser[1];
+			Map<String, String> map = (LinkedHashMap<String, String>) tokenAndUser[1];
 
 			User user = new User();
-			user.setEmail((String) map.get("email"));
-			user.setFirstName((String) map.get("firstName"));
-			user.setLastName((String) map.get("lastName"));
-			user.setPhone((String) map.get("phone"));
-			user.setPassword((String) map.get("password"));
-			user.setMailAlert((Boolean) map.get("mailAlert"));
-			user.setPhoneAlert((Boolean) map.get("phoneAlert"));
+			user.setEmail(map.get("email"));
+			user.setFirstName(map.get("firstName"));
+			user.setLastName(map.get("lastName"));
+			user.setMailAlert(Boolean.parseBoolean(map.get("mailAlert")));
+			user.setPassword("");
+			user.setPhone(map.get("phone"));
+			user.setPhoneAlert(Boolean.parseBoolean(map.get("phoneAlert")));
 
 			UserValidator validator = new UserValidator();
-			if (!validator.validate(user) || !authenticationManager.isTokenActiveByEmail(token, user.getEmail()))
+			if (!validator.validateUpdate(user) || !authenticationManager.isTokenActiveByEmail(token, user.getEmail()))
 				return false;
 
 			DbUser dbUser = userRepository.selectUserByEmail(user.getEmail()).fromUser(user);
@@ -119,6 +123,19 @@ public class UserController {
 		} catch (Exception e) {
 			return false;
 		}
+	}
+
+	@RequestMapping(value = "/isVerified", method = RequestMethod.POST)
+	public boolean isVerified(@RequestBody String email) {
+		email = email.trim();
+		if (!userRepository.existsUserWithEmail(email))
+			return false;
+		return userRepository.selectUserByEmail(email).isVerified();
+	}
+
+	@RequestMapping(value = "/isTokenActive", method = RequestMethod.POST)
+	public boolean isTokenActive(@RequestBody String tokenHash) {
+		return authenticationManager.isTokenActive(tokenHash);
 	}
 
 	public DbUserRepository getUserRepository() {

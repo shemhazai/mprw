@@ -26,6 +26,22 @@ public class UserValidator {
 
 		return true;
 	}
+	
+	public boolean validateUpdate(User user) {
+		if (!validateEmail(user.getEmail()))
+			return false;
+		
+		if (!validateName(user.getFirstName()))
+			return false;
+
+		if (!validateName(user.getLastName()))
+			return false;
+
+		if (!validatePhone(user.getPhone()))
+			return false;
+
+		return true;
+	}
 
 	private boolean validateEmail(String email) {
 		if (email == null || email.length() == 0 || email.contains(" "))

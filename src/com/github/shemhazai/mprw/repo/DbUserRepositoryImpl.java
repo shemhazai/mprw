@@ -89,12 +89,10 @@ public class DbUserRepositoryImpl implements DbUserRepository {
 
 	@Override
 	public void updateUser(int id, DbUser user) {
-		String sql = "update user set firstName = ?, lastName = ?, email = ?, phone = ?,"
-				+ "passwordHash = ?, verified = ?, mailAlert = ?, phoneAlert = ? where id = ?";
-		jdbcTemplate.update(sql,
-				new Object[] { user.getFirstName(), user.getLastName(), user.getEmail(), user.getPhone(),
-						user.getPassword(), user.isVerified() ? 1 : 0, user.isMailAlert() ? 1 : 0,
-						user.isPhoneAlert() ? 1 : 0, id });
+		String sql = "update user set firstName = ?, lastName = ?, phone = ?,"
+				+ " verified = ?, mailAlert = ?, phoneAlert = ? where id = ?";
+		jdbcTemplate.update(sql, new Object[] { user.getFirstName(), user.getLastName(), user.getPhone(),
+				user.isVerified() ? 1 : 0, user.isMailAlert() ? 1 : 0, user.isPhoneAlert() ? 1 : 0, id });
 	}
 
 	@Override

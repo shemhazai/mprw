@@ -47,6 +47,7 @@ public class AuthenticationManager {
 			String passwordHash = hasher.hash(password);
 
 			if (passwordHash.equalsIgnoreCase(dbUser.getPassword())) {
+				removeOldToken(email);
 				StringBuilder builder = new StringBuilder();
 				builder.append(dbUser.getId());
 				builder.append(dbUser.getEmail());
@@ -64,6 +65,15 @@ public class AuthenticationManager {
 		}
 
 		throw new AuthenticationException("User not found!");
+	}
+
+	private void removeOldToken(String email) {
+		List<Token> tokensToDelete = new ArrayList<>();
+		for (Token token : tokens) {
+			if (email.equals(token.getEmail()))
+				tokensToDelete.add(token);
+		}
+		tokens.removeAll(tokensToDelete);
 	}
 
 	public boolean isTokenActive(String tokenHash) {

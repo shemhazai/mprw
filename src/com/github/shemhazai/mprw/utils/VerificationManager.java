@@ -20,18 +20,21 @@ public class VerificationManager {
 		return hasher.hash(string);
 	}
 
-	public synchronized void verify(String verifyString) {
+	public synchronized boolean verify(String verifyString) {
 		List<DbUser> users = userRepository.selectAllUsers();
-
+		boolean verified = false;
+		
 		for (DbUser user : users) {
 			String currVerifyString = createVerifyString(user);
 			if (currVerifyString.equalsIgnoreCase(verifyString)) {
-				user.setVerified(true);
+				user.setVerified(true);	
 				userRepository.updateUser(user.getId(), user);
+				verified = true;
 				break;
 			}
 		}
-
+		
+		return verified;
 	}
 
 	public DbUserRepository getUserRepository() {
