@@ -1,4 +1,4 @@
-package com.github.shemhazai.mprw.utils;
+package com.github.shemhazai.mprw.domain;
 
 import java.io.Serializable;
 import java.util.Date;

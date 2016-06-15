@@ -89,10 +89,60 @@ public class DbUserRepositoryImpl implements DbUserRepository {
 
 	@Override
 	public void updateUser(int id, DbUser user) {
-		String sql = "update user set firstName = ?, lastName = ?, phone = ?,"
-				+ " verified = ?, mailAlert = ?, phoneAlert = ? where id = ?";
-		jdbcTemplate.update(sql, new Object[] { user.getFirstName(), user.getLastName(), user.getPhone(),
-				user.isVerified() ? 1 : 0, user.isMailAlert() ? 1 : 0, user.isPhoneAlert() ? 1 : 0, id });
+		String sql = "update user set email = ?, passwordHash = ?, firstName = ?, lastName = ?,"
+				+ " phone = ?, verified = ?, mailAlert = ?, phoneAlert = ? where id = ?";
+		jdbcTemplate.update(sql,
+				new Object[] { user.getEmail(), user.getPassword(), user.getFirstName(), user.getLastName(),
+						user.getPhone(), user.isVerified() ? 1 : 0, user.isMailAlert() ? 1 : 0,
+						user.isPhoneAlert() ? 1 : 0, id });
+	}
+
+	@Override
+	public void updateUserFirstName(int id, String firstName) {
+		String sql = "update user set firstName = ? where id = ?";
+		jdbcTemplate.update(sql, new Object[] { firstName, id });
+	}
+
+	@Override
+	public void updateUserLastName(int id, String lastName) {
+		String sql = "update user set lastName = ? where id = ?";
+		jdbcTemplate.update(sql, new Object[] { lastName, id });
+	}
+
+	@Override
+	public void updateUserEmail(int id, String email) {
+		String sql = "update user set email = ? where id = ?";
+		jdbcTemplate.update(sql, new Object[] { email, id });
+	}
+
+	@Override
+	public void updateUserPasswordHash(int id, String passwordHash) {
+		String sql = "update user set passwordHash = ? where id = ?";
+		jdbcTemplate.update(sql, new Object[] { passwordHash, id });
+	}
+
+	@Override
+	public void updateUserPhone(int id, String phone) {
+		String sql = "update user set phone = ? where id = ?";
+		jdbcTemplate.update(sql, new Object[] { phone, id });
+	}
+
+	@Override
+	public void updateUserMailAlert(int id, boolean mailAlert) {
+		String sql = "update user set mailAlert = ? where id = ?";
+		jdbcTemplate.update(sql, new Object[] { mailAlert ? 1 : 0, id });
+	}
+
+	@Override
+	public void updateUserPhoneAlert(int id, boolean phoneAlert) {
+		String sql = "update user set phoneAlert = ? where id = ?";
+		jdbcTemplate.update(sql, new Object[] { phoneAlert ? 1 : 0, id });
+	}
+
+	@Override
+	public void updateUserVerified(int id, boolean verified) {
+		String sql = "update user set verified = ? where id = ?";
+		jdbcTemplate.update(sql, new Object[] { verified ? 1 : 0, id });
 	}
 
 	@Override

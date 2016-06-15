@@ -23,17 +23,16 @@ public class VerificationManager {
 	public synchronized boolean verify(String verifyString) {
 		List<DbUser> users = userRepository.selectAllUsers();
 		boolean verified = false;
-		
+
 		for (DbUser user : users) {
 			String currVerifyString = createVerifyString(user);
 			if (currVerifyString.equalsIgnoreCase(verifyString)) {
-				user.setVerified(true);	
-				userRepository.updateUser(user.getId(), user);
+				userRepository.updateUserVerified(user.getId(), true);
 				verified = true;
 				break;
 			}
 		}
-		
+
 		return verified;
 	}
 

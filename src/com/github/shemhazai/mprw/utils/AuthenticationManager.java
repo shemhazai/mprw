@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.github.shemhazai.mprw.domain.DbUser;
+import com.github.shemhazai.mprw.domain.Token;
 import com.github.shemhazai.mprw.repo.DbUserRepository;
 
 @Component

@@ -1,8 +1,5 @@
 package com.github.shemhazai.mprw.controller;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import javax.security.sasl.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 
@@ -15,9 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.github.shemhazai.mprw.domain.DbUser;
 import com.github.shemhazai.mprw.domain.User;
+import com.github.shemhazai.mprw.domain.UserUpdateRequest;
 import com.github.shemhazai.mprw.notify.MailNotifier;
 import com.github.shemhazai.mprw.repo.DbUserRepository;
 import com.github.shemhazai.mprw.utils.AuthenticationManager;
+import com.github.shemhazai.mprw.utils.HashGenerator;
 import com.github.shemhazai.mprw.utils.UserValidator;
 import com.github.shemhazai.mprw.utils.VerificationManager;
 
@@ -80,7 +79,7 @@ public class UserController {
 	@RequestMapping(value = "/verify/{verifyString}", method = RequestMethod.GET)
 	public String verify(@PathVariable String verifyString) {
 		if (verificationManager.verify(verifyString)) {
-			return "Konto zostało zweryfikowane!";
+			return "Konto zostalo aktywowane!";
 		} else {
 			return "Blad! Konto nie istnieje.";
 		}
@@ -93,36 +92,30 @@ public class UserController {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/updateUser", method = RequestMethod.POST)
-	public boolean updateUser(@RequestBody Object[] tokenAndUser) {
-		if (tokenAndUser.length != 2)
+	public boolean updateUser(@RequestBody UserUpdateRequest request) {
+		if (request.getLoginEmail() == null || request.getLoginPassword() == null)
 			return false;
 
-		try {
-			String token = (String) tokenAndUser[0];
-			Map<String, String> map = (LinkedHashMap<String, String>) tokenAndUser[1];
-
-			User user = new User();
-			user.setEmail(map.get("email"));
-			user.setFirstName(map.get("firstName"));
-			user.setLastName(map.get("lastName"));
-			user.setMailAlert(Boolean.parseBoolean(map.get("mailAlert")));
-			user.setPassword("");
-			user.setPhone(map.get("phone"));
-			user.setPhoneAlert(Boolean.parseBoolean(map.get("phoneAlert")));
-
-			UserValidator validator = new UserValidator();
-			if (!validator.validateUpdate(user) || !authenticationManager.isTokenActiveByEmail(token, user.getEmail()))
-				return false;
-
-			DbUser dbUser = userRepository.selectUserByEmail(user.getEmail()).fromUser(user);
-			userRepository.updateUser(dbUser.getId(), dbUser);
-
-			return true;
-		} catch (Exception e) {
+		if (!userRepository.existsUserWithEmail(request.getLoginEmail()))
 			return false;
-		}
+
+		HashGenerator hasher = new HashGenerator();
+		String passwordHash = hasher.hash(request.getLoginPassword());
+
+		DbUser dbUser = userRepository.selectUserByEmail(request.getLoginEmail());
+		if (!passwordHash.equalsIgnoreCase(dbUser.getPassword()))
+			return false;
+
+		int fieldsToUpdate = request.countFieldsToUpdate();
+		int validatedFields = request.countValidatedFields();
+
+		if (validatedFields != fieldsToUpdate)
+			return false;
+
+		request.updateUserFromRepository(userRepository);
+
+		return true;
 	}
 
 	@RequestMapping(value = "/isVerified", method = RequestMethod.POST)
