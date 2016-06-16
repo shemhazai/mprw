@@ -43,22 +43,22 @@ public class UserController {
 	}
 
 	@RequestMapping(value = "/createUser", method = RequestMethod.POST)
-	public boolean createUser(@RequestBody User user) {
+	public String createUser(@RequestBody User user) {
 		UserValidator validator = new UserValidator();
 		if (!validator.validate(user) || userRepository.existsUserWithEmail(user.getEmail()))
-			return false;
+			return "FALSE";
 
 		DbUser dbUser = userRepository.createUser(user.getEmail()).fromUser(user);
 		userRepository.updateUser(dbUser.getId(), dbUser);
 
-		return true;
+		return "TRUE";
 	}
 
 	@RequestMapping(value = "/createVerifyLink", method = RequestMethod.POST)
-	public boolean createVerifyLink(HttpServletRequest request, @RequestBody String[] tokenAndEmail) {
+	public String createVerifyLink(HttpServletRequest request, @RequestBody String[] tokenAndEmail) {
 		if (tokenAndEmail.length != 2 || !userRepository.existsUserWithEmail(tokenAndEmail[1])
 				|| !authenticationManager.isTokenActiveByEmail(tokenAndEmail[0], tokenAndEmail[1]))
-			return false;
+			return "FALSE";
 
 		DbUser user = userRepository.selectUserByEmail(tokenAndEmail[1]);
 		String verifyString = verificationManager.createVerifyString(user);
@@ -73,7 +73,7 @@ public class UserController {
 		msgBuilder.append(finalVerifyString);
 		msgBuilder.append("\n\n");
 		mailNotifier.notifyOne(tokenAndEmail[1], "Weryfikacja konta w MPRW.", msgBuilder.toString());
-		return true;
+		return "TRUE";
 	}
 
 	@RequestMapping(value = "/verify/{verifyString}", method = RequestMethod.GET)
@@ -93,42 +93,45 @@ public class UserController {
 	}
 
 	@RequestMapping(value = "/updateUser", method = RequestMethod.POST)
-	public boolean updateUser(@RequestBody UserUpdateRequest request) {
+	public String updateUser(@RequestBody UserUpdateRequest request) {
 		if (request.getLoginEmail() == null || request.getLoginPassword() == null)
-			return false;
+			return "FALSE";
 
 		if (!userRepository.existsUserWithEmail(request.getLoginEmail()))
-			return false;
+			return "FALSE";
 
 		HashGenerator hasher = new HashGenerator();
 		String passwordHash = hasher.hash(request.getLoginPassword());
 
 		DbUser dbUser = userRepository.selectUserByEmail(request.getLoginEmail());
 		if (!passwordHash.equalsIgnoreCase(dbUser.getPassword()))
-			return false;
+			return "FALSE";
 
 		int fieldsToUpdate = request.countFieldsToUpdate();
 		int validatedFields = request.countValidatedFields();
 
 		if (validatedFields != fieldsToUpdate)
-			return false;
+			return "FALSE";
 
 		request.updateUserFromRepository(userRepository);
 
-		return true;
+		return "TRUE";
 	}
 
 	@RequestMapping(value = "/isVerified", method = RequestMethod.POST)
-	public boolean isVerified(@RequestBody String email) {
+	public String isVerified(@RequestBody String email) {
 		email = email.trim();
 		if (!userRepository.existsUserWithEmail(email))
-			return false;
-		return userRepository.selectUserByEmail(email).isVerified();
+			return "FALSE";
+
+		DbUser user = userRepository.selectUserByEmail(email);
+		return user.isVerified() ? "TRUE" : "FALSE";
 	}
 
 	@RequestMapping(value = "/isTokenActive", method = RequestMethod.POST)
-	public boolean isTokenActive(@RequestBody String tokenHash) {
-		return authenticationManager.isTokenActive(tokenHash);
+	public String isTokenActive(@RequestBody String tokenHash) {
+		boolean isActive = authenticationManager.isTokenActive(tokenHash);
+		return isActive ? "TRUE" : "FALSE";
 	}
 
 	public DbUserRepository getUserRepository() {
