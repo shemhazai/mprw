@@ -86,10 +86,11 @@ public class AuthenticationManager {
 			}
 		}
 
-		if (theToken != null)
-			theToken.setExpireDate(dateAfterOneHour());
+		if (theToken == null || !userRepository.existsUserWithEmail(theToken.getEmail()))
+			return false;
 
-		return theToken != null;
+		theToken.setExpireDate(dateAfterOneHour());
+		return true;
 	}
 
 	public boolean isTokenActiveByEmail(String tokenHash, String email) {
