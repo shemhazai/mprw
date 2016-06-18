@@ -1,6 +1,8 @@
 package com.github.shemhazai.mprw.config;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.sql.DataSource;
@@ -12,7 +14,8 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.shemhazai.mprw.utils.MailSender;
+import com.github.shemhazai.mprw.notify.MailNotifier;
+import com.github.shemhazai.mprw.notify.Notifier;
 
 @Configuration
 public class Beans {
@@ -37,7 +40,7 @@ public class Beans {
 	public DataSource dataSource() {
 		DriverManagerDataSource dataSource = new DriverManagerDataSource();
 		dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-		dataSource.setUrl("jdbc:mysql://yourdburl:3306/yourdb");
+		dataSource.setUrl("jdbc:mysql://your_address:3306/your_db");
 		dataSource.setUsername("username");
 		dataSource.setPassword("password");
 		return dataSource;
@@ -49,10 +52,24 @@ public class Beans {
 	}
 
 	@Bean
-	public MailSender mailSender() {
-		return new MailSender(mailProperties());
+	public List<Notifier> notifiers() {
+		List<Notifier> notifiers = new ArrayList<>();
+		notifiers.add(mailNotifier());
+		return notifiers;
 	}
 
+	@Bean
+	public MailNotifier mailNotifier() {
+		MailNotifier notifier = new MailNotifier();
+		notifier.setProperties(mailProperties());
+		notifier.setAdminEmail("your@admin.com");
+		notifier.setEmail("system@account.com");
+		notifier.setLogin("system");
+		notifier.setPassword("system_password");
+		return notifier;
+	}
+
+	// change your settings
 	private Properties mailProperties() {
 		Properties props = new Properties();
 		props.setProperty("mail.transport.protocol", "smtp");
@@ -61,9 +78,6 @@ public class Beans {
 		props.setProperty("mail.smtp.port", "465");
 		props.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 		props.setProperty("mail.smtp.socketFactory.fallback", "false");
-		props.setProperty("email", "yourlogin@gmail.com");
-		props.setProperty("login", "yourlogin");
-		props.setProperty("password", "yourpassword");
 		return props;
 	}
 }

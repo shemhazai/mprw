@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.shemhazai.mprw.domain.DbUser;
+import com.github.shemhazai.mprw.domain.Token;
 import com.github.shemhazai.mprw.domain.User;
 import com.github.shemhazai.mprw.domain.UserUpdateRequest;
 import com.github.shemhazai.mprw.notify.MailNotifier;
@@ -34,9 +35,11 @@ public class UserController {
 	private VerificationManager verificationManager;
 
 	@RequestMapping(value = "/createToken", method = RequestMethod.POST)
-	public String createToken(@RequestBody String[] pass) {
+	public String createToken(@RequestBody User user) {
 		try {
-			return authenticationManager.createToken(pass[0], pass[1]);
+			if (user.getEmail() == null || user.getPassword() == null)
+				return "UNAUTHORIZED";
+			return authenticationManager.createToken(user.getEmail(), user.getPassword());
 		} catch (AuthenticationException e) {
 			return "UNAUTHORIZED";
 		}
@@ -55,12 +58,15 @@ public class UserController {
 	}
 
 	@RequestMapping(value = "/createVerifyLink", method = RequestMethod.POST)
-	public String createVerifyLink(HttpServletRequest request, @RequestBody String[] tokenAndEmail) {
-		if (tokenAndEmail.length != 2 || !userRepository.existsUserWithEmail(tokenAndEmail[1])
-				|| !authenticationManager.isTokenActiveByEmail(tokenAndEmail[0], tokenAndEmail[1]))
+	public String createVerifyLink(HttpServletRequest request, @RequestBody Token token) {
+		if (token.getToken() == null || token.getEmail() == null)
 			return "FALSE";
 
-		DbUser user = userRepository.selectUserByEmail(tokenAndEmail[1]);
+		if (!userRepository.existsUserWithEmail(token.getEmail())
+				|| !authenticationManager.isTokenActiveByEmail(token.getToken(), token.getEmail()))
+			return "FALSE";
+
+		DbUser user = userRepository.selectUserByEmail(token.getEmail());
 		String verifyString = verificationManager.createVerifyString(user);
 
 		StringBuilder msgBuilder = new StringBuilder();
@@ -72,7 +78,7 @@ public class UserController {
 
 		msgBuilder.append(finalVerifyString);
 		msgBuilder.append("\n\n");
-		mailNotifier.notifyOne(tokenAndEmail[1], "Weryfikacja konta w MPRW.", msgBuilder.toString());
+		mailNotifier.notifyOne(token.getEmail(), "Weryfikacja konta w MPRW.", msgBuilder.toString());
 		return "TRUE";
 	}
 
@@ -86,9 +92,12 @@ public class UserController {
 	}
 
 	@RequestMapping(value = "/selectUserByEmail", method = RequestMethod.POST)
-	public User selectUserByEmail(@RequestBody String[] tokenAndEmail) {
-		if (tokenAndEmail.length == 2 && authenticationManager.isTokenActive(tokenAndEmail[0]))
-			return userRepository.selectUserByEmail(tokenAndEmail[1]).toUser();
+	public User selectUserByEmail(@RequestBody Token token) {
+		if (token.getToken() == null || token.getEmail() == null)
+			return null;
+
+		if (authenticationManager.isTokenActive(token.getToken()))
+			return userRepository.selectUserByEmail(token.getEmail()).toUser();
 		return null;
 	}
 
