@@ -1,4 +1,4 @@
-package com.github.shemhazai.mprw.repo;
+package com.github.shemhazai.mprw.repo.impl;
 
 import java.util.List;
 
@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.github.shemhazai.mprw.domain.River;
+import com.github.shemhazai.mprw.repo.RiverRepository;
+import com.github.shemhazai.mprw.repo.mapper.RiverMapper;
 
 @Repository
 public class RiverRepositoryImpl implements RiverRepository {

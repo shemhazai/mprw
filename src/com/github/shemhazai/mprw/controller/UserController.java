@@ -1,6 +1,5 @@
 package com.github.shemhazai.mprw.controller;
 
-import javax.security.sasl.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,169 +9,64 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.github.shemhazai.mprw.domain.DbUser;
 import com.github.shemhazai.mprw.domain.Token;
 import com.github.shemhazai.mprw.domain.User;
 import com.github.shemhazai.mprw.domain.UserUpdateRequest;
-import com.github.shemhazai.mprw.notify.MailNotifier;
-import com.github.shemhazai.mprw.repo.DbUserRepository;
-import com.github.shemhazai.mprw.utils.AuthenticationManager;
-import com.github.shemhazai.mprw.utils.HashGenerator;
-import com.github.shemhazai.mprw.utils.UserValidator;
-import com.github.shemhazai.mprw.utils.VerificationManager;
+import com.github.shemhazai.mprw.service.UserService;
 
 @RestController
 @RequestMapping("/rest/user")
 public class UserController {
 
 	@Autowired
-	private DbUserRepository userRepository;
-	@Autowired
-	private AuthenticationManager authenticationManager;
-	@Autowired
-	private MailNotifier mailNotifier;
-	@Autowired
-	private VerificationManager verificationManager;
+	private UserService userService;
 
 	@RequestMapping(value = "/createToken", method = RequestMethod.POST)
 	public String createToken(@RequestBody User user) {
-		try {
-			if (user.getEmail() == null || user.getPassword() == null)
-				return "UNAUTHORIZED";
-			return authenticationManager.createToken(user.getEmail(), user.getPassword());
-		} catch (AuthenticationException e) {
-			return "UNAUTHORIZED";
-		}
+		return userService.createToken(user);
 	}
 
 	@RequestMapping(value = "/createUser", method = RequestMethod.POST)
 	public String createUser(@RequestBody User user) {
-		UserValidator validator = new UserValidator();
-		if (!validator.validate(user) || userRepository.existsUserWithEmail(user.getEmail()))
-			return "FALSE";
-
-		DbUser dbUser = userRepository.createUser(user.getEmail()).fromUser(user);
-		userRepository.updateUser(dbUser.getId(), dbUser);
-
-		return "TRUE";
+		return userService.createUser(user);
 	}
 
 	@RequestMapping(value = "/createVerifyLink", method = RequestMethod.POST)
 	public String createVerifyLink(HttpServletRequest request, @RequestBody Token token) {
-		if (token.getToken() == null || token.getEmail() == null)
-			return "FALSE";
-
-		if (!userRepository.existsUserWithEmail(token.getEmail())
-				|| !authenticationManager.isTokenActiveByEmail(token.getToken(), token.getEmail()))
-			return "FALSE";
-
-		DbUser user = userRepository.selectUserByEmail(token.getEmail());
-		String verifyString = verificationManager.createVerifyString(user);
-
-		StringBuilder msgBuilder = new StringBuilder();
-		msgBuilder.append("Witaj, utworzono nowe konto w MPRW.\n");
-		msgBuilder.append("Aby je aktywować, wejdź pod adres:\n\n");
-
-		String finalVerifyString = String.format("%s://%s:%s/mprw/rest/user/verify/%s", request.getScheme(),
-				request.getServerName(), request.getServerPort() + "", verifyString);
-
-		msgBuilder.append(finalVerifyString);
-		msgBuilder.append("\n\n");
-		mailNotifier.notifyOne(token.getEmail(), "Weryfikacja konta w MPRW.", msgBuilder.toString());
-		return "TRUE";
+		return userService.createVerifyLink(token, request.getScheme(), request.getServerName(),
+				request.getServerPort() + "");
 	}
 
-	@RequestMapping(value = "/verify/{verifyString}", method = RequestMethod.GET)
-	public String verify(@PathVariable String verifyString) {
-		if (verificationManager.verify(verifyString)) {
-			return "Konto zostalo aktywowane!";
-		} else {
-			return "Blad! Konto nie istnieje.";
-		}
+	@RequestMapping(value = "/verify/{email}/{verifyString}", method = RequestMethod.GET)
+	public String verify(@PathVariable String email, @PathVariable String verifyString) {
+		return userService.verify(email, verifyString);
 	}
 
-	@RequestMapping(value = "/selectUserByEmail", method = RequestMethod.POST)
-	public User selectUserByEmail(@RequestBody Token token) {
-		if (token.getToken() == null || token.getEmail() == null)
-			return null;
-
-		if (authenticationManager.isTokenActive(token.getToken()))
-			return userRepository.selectUserByEmail(token.getEmail()).toUser();
-		return null;
+	@RequestMapping(value = "/selectUserByToken", method = RequestMethod.POST)
+	public User selectUserByToken(@RequestBody Token token) {
+		return userService.selectUserByToken(token);
 	}
 
 	@RequestMapping(value = "/updateUser", method = RequestMethod.POST)
 	public String updateUser(@RequestBody UserUpdateRequest request) {
-		if (request.getLoginEmail() == null || request.getLoginPassword() == null)
-			return "FALSE";
-
-		if (!userRepository.existsUserWithEmail(request.getLoginEmail()))
-			return "FALSE";
-
-		HashGenerator hasher = new HashGenerator();
-		String passwordHash = hasher.hash(request.getLoginPassword());
-
-		DbUser dbUser = userRepository.selectUserByEmail(request.getLoginEmail());
-		if (!passwordHash.equalsIgnoreCase(dbUser.getPassword()))
-			return "FALSE";
-
-		int fieldsToUpdate = request.countFieldsToUpdate();
-		int validatedFields = request.countValidatedFields();
-
-		if (validatedFields != fieldsToUpdate)
-			return "FALSE";
-
-		request.updateUserFromRepository(userRepository);
-
-		return "TRUE";
+		return userService.updateUser(request);
 	}
 
 	@RequestMapping(value = "/isVerified", method = RequestMethod.POST)
 	public String isVerified(@RequestBody String email) {
-		email = email.trim();
-		if (!userRepository.existsUserWithEmail(email))
-			return "FALSE";
-
-		DbUser user = userRepository.selectUserByEmail(email);
-		return user.isVerified() ? "TRUE" : "FALSE";
+		return userService.isVerified(email);
 	}
 
 	@RequestMapping(value = "/isTokenActive", method = RequestMethod.POST)
 	public String isTokenActive(@RequestBody String tokenHash) {
-		boolean isActive = authenticationManager.isTokenActive(tokenHash);
-		return isActive ? "TRUE" : "FALSE";
+		return userService.isTokenActive(tokenHash);
 	}
 
-	public DbUserRepository getUserRepository() {
-		return userRepository;
+	public UserService getUserService() {
+		return userService;
 	}
 
-	public void setUserRepository(DbUserRepository userRepository) {
-		this.userRepository = userRepository;
+	public void setUserService(UserService userService) {
+		this.userService = userService;
 	}
-
-	public AuthenticationManager getAuthenticationManager() {
-		return authenticationManager;
-	}
-
-	public void setAuthenticationManager(AuthenticationManager authenticationManager) {
-		this.authenticationManager = authenticationManager;
-	}
-
-	public MailNotifier getMailNotifier() {
-		return mailNotifier;
-	}
-
-	public void setMailNotifier(MailNotifier mailNotifier) {
-		this.mailNotifier = mailNotifier;
-	}
-
-	public VerificationManager getVerificationManager() {
-		return verificationManager;
-	}
-
-	public void setVerificationManager(VerificationManager verificationManager) {
-		this.verificationManager = verificationManager;
-	}
-
 }

@@ -1,4 +1,4 @@
-package com.github.shemhazai.mprw.repo;
+package com.github.shemhazai.mprw.repo.impl;
 
 import java.util.List;
 
@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.github.shemhazai.mprw.domain.DbUser;
+import com.github.shemhazai.mprw.repo.DbUserRepository;
+import com.github.shemhazai.mprw.repo.mapper.DbUserMapper;
 
 @Repository
 public class DbUserRepositoryImpl implements DbUserRepository {

@@ -1,7 +1,5 @@
 package com.github.shemhazai.mprw.utils;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,23 +15,22 @@ public class VerificationManager {
 	public synchronized String createVerifyString(DbUser user) {
 		String string = user.getId() + ":" + user.getEmail();
 		HashGenerator hasher = new HashGenerator();
-		return hasher.hash(string);
+		String verifyString = hasher.hash(string);
+		return user.getEmail() + "/" + verifyString;
 	}
 
-	public synchronized boolean verify(String verifyString) {
-		List<DbUser> users = userRepository.selectAllUsers();
-		boolean verified = false;
+	public boolean verify(String email, String verifyString) {
+		if (!userRepository.existsUserWithEmail(email))
+			return false;
 
-		for (DbUser user : users) {
-			String currVerifyString = createVerifyString(user);
-			if (currVerifyString.equalsIgnoreCase(verifyString)) {
-				userRepository.updateUserVerified(user.getId(), true);
-				verified = true;
-				break;
-			}
+		DbUser user = userRepository.selectUserByEmail(email);
+		String currVerifyString = createVerifyString(user);
+		if (currVerifyString.equalsIgnoreCase(verifyString)) {
+			userRepository.updateUserVerified(user.getId(), true);
+			return true;
 		}
 
-		return verified;
+		return false;
 	}
 
 	public DbUserRepository getUserRepository() {

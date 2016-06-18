@@ -1,4 +1,4 @@
-package com.github.shemhazai.mprw.repo;
+package com.github.shemhazai.mprw.repo.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
