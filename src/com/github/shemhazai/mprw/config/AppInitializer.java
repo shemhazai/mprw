@@ -26,7 +26,7 @@ import com.github.shemhazai.mprw.data.DataCollector;
 import com.github.shemhazai.mprw.domain.DbUser;
 import com.github.shemhazai.mprw.domain.River;
 import com.github.shemhazai.mprw.domain.RiverStatus;
-import com.github.shemhazai.mprw.notify.MailNotifier;
+import com.github.shemhazai.mprw.notify.Notifier;
 import com.github.shemhazai.mprw.repo.DbUserRepository;
 import com.github.shemhazai.mprw.repo.RiverRepository;
 import com.github.shemhazai.mprw.repo.RiverStatusRepository;
@@ -45,7 +45,7 @@ public class AppInitializer implements WebApplicationInitializer {
 	@Autowired
 	private DataCollector collector;
 	@Autowired
-	private MailNotifier mailNotifier;
+	private List<Notifier> notifiers;
 
 	public AppInitializer() {
 
@@ -67,8 +67,8 @@ public class AppInitializer implements WebApplicationInitializer {
 		return collector;
 	}
 
-	public MailNotifier getMailNotifier() {
-		return mailNotifier;
+	public List<Notifier> getNotifiers() {
+		return notifiers;
 	}
 
 	public void setRiverRepository(RiverRepository riverRepository) {
@@ -87,8 +87,19 @@ public class AppInitializer implements WebApplicationInitializer {
 		this.collector = collector;
 	}
 
-	public void setMailNotifier(MailNotifier mailNotifier) {
-		this.mailNotifier = mailNotifier;
+	public void setNotifiers(List<Notifier> notifiers) {
+		this.notifiers = notifiers;
+	}
+
+	public void addNotifier(Notifier notifier) {
+		if (notifiers == null)
+			notifiers = new ArrayList<>();
+		notifiers.add(notifier);
+	}
+
+	public void removeNotifier(Notifier notifier) {
+		if (notifiers != null)
+			notifiers.remove(notifier);
 	}
 
 	@Override
@@ -126,7 +137,11 @@ public class AppInitializer implements WebApplicationInitializer {
 			builder.append(stackTrace + "\n");
 
 			logger.error(e.getMessage(), e);
-			mailNotifier.notifyOne(mailNotifier.getAdminEmail(), "Errors when collecting data.", builder.toString());
+
+			String subject = "Errors when collecting data.";
+			String message = builder.toString();
+			for (Notifier notifier : notifiers)
+				notifier.notifyAdmin(subject, message);
 		}
 	}
 
@@ -136,8 +151,6 @@ public class AppInitializer implements WebApplicationInitializer {
 		List<River> listOfRiver = riverRepository.selectRiversInDanger();
 
 		if (!listOfRiver.isEmpty()) {
-			String title = "Ostrzeżenie o zagrożeniu powodziowym.";
-
 			StringBuilder builder = new StringBuilder();
 			builder.append("Uwaga.\n");
 			builder.append("Stan zagrożenia powodziowego na rzekach:\n");
@@ -153,8 +166,12 @@ public class AppInitializer implements WebApplicationInitializer {
 			List<String> contacts = new ArrayList<>();
 			users.forEach((u) -> contacts.add(u.getEmail()));
 
-			logger.warn(builder.toString());
-			mailNotifier.notifyEveryone(contacts, title, builder.toString());
+			String subject = "Ostrzeżenie o zagrożeniu powodziowym.";
+			String message = builder.toString();
+
+			logger.warn(message);
+			for (Notifier notifier : notifiers)
+				notifier.notifyEveryone(contacts, subject, message);
 		}
 
 	}

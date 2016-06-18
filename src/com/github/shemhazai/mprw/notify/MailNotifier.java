@@ -81,11 +81,16 @@ public class MailNotifier implements Notifier {
 	}
 
 	@Override
+	public void notifyAdmin(String subject, String message) {
+		notifyOne(adminEmail, subject, message);
+	}
+
+	@Override
 	public void notifyEveryone(List<String> contacts, String subject, String text) {
 		try {
 			Message message = createMessage(subject, text);
 			message.setRecipient(Message.RecipientType.TO, new InternetAddress(adminEmail));
-			
+
 			for (String recipient : contacts) {
 				InternetAddress address = new InternetAddress(recipient);
 				message.addRecipient(RecipientType.CC, address);
