@@ -37,9 +37,9 @@ public class UserController {
 				request.getServerPort() + "");
 	}
 
-	@RequestMapping(value = "/verify/{email}/{verifyString}", method = RequestMethod.GET)
-	public String verify(@PathVariable String email, @PathVariable String verifyString) {
-		return userService.verify(email, verifyString);
+	@RequestMapping(value = "/verify/{email}/{hash}", method = RequestMethod.GET)
+	public String verify(@PathVariable String email, @PathVariable String hash) {
+		return userService.verify(email, hash);
 	}
 
 	@RequestMapping(value = "/selectUserByToken", method = RequestMethod.POST)

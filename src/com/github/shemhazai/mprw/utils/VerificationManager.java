@@ -19,9 +19,11 @@ public class VerificationManager {
 		return user.getEmail() + "/" + verifyString;
 	}
 
-	public boolean verify(String email, String verifyString) {
+	public boolean verify(String email, String hash) {
 		if (!userRepository.existsUserWithEmail(email))
 			return false;
+
+		String verifyString = email + "/" + hash;
 
 		DbUser user = userRepository.selectUserByEmail(email);
 		String currVerifyString = createVerifyString(user);

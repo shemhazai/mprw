@@ -89,8 +89,8 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public String verify(String email, String verifyString) {
-		if (verificationManager.verify(email, verifyString))
+	public String verify(String email, String hash) {
+		if (verificationManager.verify(email, hash))
 			return "Konto zostalo aktywowane!";
 		return "Blad! Konto nie istnieje.";
 	}
