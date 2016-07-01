@@ -1,5 +1,7 @@
 package com.github.shemhazai.mprw.service;
 
+import javax.security.sasl.AuthenticationException;
+
 import com.github.shemhazai.mprw.domain.Token;
 import com.github.shemhazai.mprw.domain.User;
 import com.github.shemhazai.mprw.domain.UserUpdateRequest;
@@ -7,17 +9,18 @@ import com.github.shemhazai.mprw.domain.UserUpdateRequest;
 public interface UserService {
 	public User selectUserByToken(Token token);
 
-	public String createToken(User user);
+	public Token createToken(User user) throws AuthenticationException;
 
-	public String createUser(User user);
+	public String saveUser(User user);
 
-	public String createVerifyLink(Token token, String scheme, String serverName, String serverPort);
+	public String sendVerifyLink(Token token, String scheme, String serverName,
+			String serverPort);
 
 	public String verify(String email, String verifyString);
 
 	public String updateUser(UserUpdateRequest request);
 
-	public String isVerified(String email);
+	public boolean isVerified(String email);
 
-	public String isTokenActive(String tokenHash);
+	public boolean isTokenRegistered(Token token);
 }

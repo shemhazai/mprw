@@ -23,13 +23,13 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 import org.springframework.web.servlet.DispatcherServlet;
 
 import com.github.shemhazai.mprw.data.DataCollector;
-import com.github.shemhazai.mprw.domain.DbUser;
 import com.github.shemhazai.mprw.domain.River;
 import com.github.shemhazai.mprw.domain.RiverStatus;
+import com.github.shemhazai.mprw.domain.User;
 import com.github.shemhazai.mprw.notify.Notifier;
-import com.github.shemhazai.mprw.repo.DbUserRepository;
 import com.github.shemhazai.mprw.repo.RiverRepository;
 import com.github.shemhazai.mprw.repo.RiverStatusRepository;
+import com.github.shemhazai.mprw.repo.UserRepository;
 
 @Configuration
 public class AppInitializer implements WebApplicationInitializer {
@@ -41,7 +41,7 @@ public class AppInitializer implements WebApplicationInitializer {
 	@Autowired
 	private RiverStatusRepository riverStatusRepository;
 	@Autowired
-	private DbUserRepository userRepository;
+	private UserRepository userRepository;
 	@Autowired
 	private DataCollector collector;
 	@Autowired
@@ -59,7 +59,7 @@ public class AppInitializer implements WebApplicationInitializer {
 		return riverStatusRepository;
 	}
 
-	public DbUserRepository getUserRepository() {
+	public UserRepository getUserRepository() {
 		return userRepository;
 	}
 
@@ -79,7 +79,7 @@ public class AppInitializer implements WebApplicationInitializer {
 		this.riverStatusRepository = riverStatusRepository;
 	}
 
-	public void setUserRepository(DbUserRepository userRepository) {
+	public void setUserRepository(UserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
 
@@ -107,8 +107,8 @@ public class AppInitializer implements WebApplicationInitializer {
 		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
 		context.register(AppConfig.class);
 		servletContext.addListener(new ContextLoaderListener(context));
-		ServletRegistration.Dynamic dispatcher = servletContext.addServlet("DispatcherServlet",
-				new DispatcherServlet(context));
+		ServletRegistration.Dynamic dispatcher = servletContext
+				.addServlet("DispatcherServlet", new DispatcherServlet(context));
 		dispatcher.setLoadOnStartup(1);
 		dispatcher.addMapping("/*");
 	}
@@ -157,12 +157,13 @@ public class AppInitializer implements WebApplicationInitializer {
 
 			for (River river : listOfRiver) {
 				builder.append(" * " + river.getDescription());
-				builder.append(", obecny poziom: " + lastRiverLevel(river.getId()) + "cm");
+				builder.append(
+						", obecny poziom: " + lastRiverLevel(river.getId()) + "cm");
 				builder.append(", poziom powodziowy: " + river.getFloodLevel() + "cm");
 				builder.append(", poziom alarmowy: " + river.getAlertLevel() + "cm.\n");
 			}
 
-			List<DbUser> users = userRepository.selectUsersWithEmailAlert();
+			List<User> users = userRepository.selectUsersWithEmailAlert();
 			List<String> contacts = new ArrayList<>();
 			users.forEach((u) -> contacts.add(u.getEmail()));
 
@@ -177,7 +178,8 @@ public class AppInitializer implements WebApplicationInitializer {
 	}
 
 	private int lastRiverLevel(int riverId) {
-		List<RiverStatus> list = riverStatusRepository.selectLastRiverStatusesByRiverIdLimit(riverId, 1);
+		List<RiverStatus> list = riverStatusRepository
+				.selectLastRiverStatusesByRiverIdLimit(riverId, 1);
 		return list.get(0).getLevel();
 	}
 }

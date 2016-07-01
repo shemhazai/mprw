@@ -5,15 +5,14 @@ import javax.security.sasl.AuthenticationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.github.shemhazai.mprw.domain.DbUser;
+import com.github.shemhazai.mprw.controller.UserController;
 import com.github.shemhazai.mprw.domain.Token;
 import com.github.shemhazai.mprw.domain.User;
 import com.github.shemhazai.mprw.domain.UserUpdateRequest;
 import com.github.shemhazai.mprw.notify.MailNotifier;
-import com.github.shemhazai.mprw.repo.DbUserRepository;
+import com.github.shemhazai.mprw.repo.UserRepository;
 import com.github.shemhazai.mprw.service.UserService;
 import com.github.shemhazai.mprw.utils.AuthenticationManager;
-import com.github.shemhazai.mprw.utils.HashGenerator;
 import com.github.shemhazai.mprw.utils.UserValidator;
 import com.github.shemhazai.mprw.utils.VerificationManager;
 
@@ -21,7 +20,7 @@ import com.github.shemhazai.mprw.utils.VerificationManager;
 public class UserServiceImpl implements UserService {
 
 	@Autowired
-	private DbUserRepository userRepository;
+	private UserRepository userRepository;
 	@Autowired
 	private AuthenticationManager authenticationManager;
 	@Autowired
@@ -31,61 +30,55 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User selectUserByToken(Token token) {
-		if (token.getToken() == null || token.getEmail() == null)
-			return null;
-
-		if (authenticationManager.isTokenActive(token.getToken()))
-			return userRepository.selectUserByEmail(token.getEmail()).toUser();
+		if (isValid(token))
+			return userRepository.selectUserByEmail(token.getEmail());
 		return null;
 	}
 
 	@Override
-	public String createToken(User user) {
-		if (user.getEmail() == null || user.getPassword() == null)
-			return "UNAUTHORIZED";
-
-		try {
-			return authenticationManager.createToken(user.getEmail(), user.getPassword());
-		} catch (AuthenticationException e) {
-			return "UNAUTHORIZED";
-		}
+	public Token createToken(User user) throws AuthenticationException {
+		if (!isValid(user))
+			throw new AuthenticationException("User not valid!");
+		return authenticationManager.createAndRegisterToken(user);
 	}
 
 	@Override
-	public String createUser(User user) {
-		UserValidator validator = new UserValidator();
-		if (!validator.validate(user) || userRepository.existsUserWithEmail(user.getEmail()))
-			return "FALSE";
+	public String saveUser(User user) {
+		if (!validateUser(user) || userExists(user.getEmail()))
+			return UserController.FALSE;
 
-		DbUser dbUser = userRepository.createUser(user.getEmail()).fromUser(user);
-		userRepository.updateUser(dbUser.getId(), dbUser);
+		User emptyUser = userRepository.createUser(user.getEmail());
+		userRepository.updateUser(emptyUser.getId(), user);
+		return UserController.TRUE;
+	}
 
-		return "TRUE";
+	private boolean validateUser(User user) {
+		return new UserValidator().validate(user);
 	}
 
 	@Override
-	public String createVerifyLink(Token token, String scheme, String serverName, String serverPort) {
-		if (token.getToken() == null || token.getEmail() == null)
-			return "FALSE";
+	public String sendVerifyLink(Token token, String scheme, String serverName,
+			String serverPort) {
 
-		if (!userRepository.existsUserWithEmail(token.getEmail())
-				|| !authenticationManager.isTokenActiveByEmail(token.getToken(), token.getEmail()))
-			return "FALSE";
+		if (!isValid(token) || !userExists(token.getEmail()))
+			return UserController.FALSE;
 
-		DbUser user = userRepository.selectUserByEmail(token.getEmail());
+		User user = userRepository.selectUserByEmail(token.getEmail());
+		String message = buildMessage(user, scheme, serverName, serverPort);
+		mailNotifier.notifyOne(token.getEmail(), "Weryfikacja konta w MPRW.", message);
+		return UserController.TRUE;
+	}
+
+	private String buildMessage(User user, String scheme, String serverName,
+			String serverPort) {
 		String verifyString = verificationManager.createVerifyString(user);
-
-		StringBuilder msgBuilder = new StringBuilder();
-		msgBuilder.append("Witaj, utworzono nowe konto w MPRW.\n");
-		msgBuilder.append("Aby je aktywować, wejdź pod adres:\n\n");
-
-		String finalVerifyString = String.format("%s://%s:%s/mprw/rest/user/verify/%s", scheme, serverName, serverPort,
-				verifyString);
-
-		msgBuilder.append(finalVerifyString);
-		msgBuilder.append("\n\n");
-		mailNotifier.notifyOne(token.getEmail(), "Weryfikacja konta w MPRW.", msgBuilder.toString());
-		return "TRUE";
+		StringBuilder builder = new StringBuilder();
+		builder.append("Witaj, utworzono nowe konto w MPRW.\n");
+		builder.append("Aby je aktywować, wejdź pod adres:\n\n");
+		builder.append(String.format("%s://%s:%s/mprw/rest/user/verify/%s", scheme,
+				serverName, serverPort, verifyString));
+		builder.append("\n\n");
+		return builder.toString();
 	}
 
 	@Override
@@ -97,46 +90,80 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public String updateUser(UserUpdateRequest request) {
-		if (request.getLoginEmail() == null || request.getLoginPassword() == null)
-			return "FALSE";
+		if (isNull(request) || !userExists(request.getLoginEmail()))
+			return UserController.FALSE;
 
-		if (!userRepository.existsUserWithEmail(request.getLoginEmail()))
-			return "FALSE";
+		User user = new User();
+		user.setEmail(request.getLoginEmail());
+		user.setPassword(request.getLoginPassword());
 
-		HashGenerator hasher = new HashGenerator();
-		String passwordHash = hasher.hash(request.getLoginPassword());
-
-		DbUser dbUser = userRepository.selectUserByEmail(request.getLoginEmail());
-		if (!passwordHash.equalsIgnoreCase(dbUser.getPassword()))
-			return "FALSE";
+		if (!isCorrectPassword(user))
+			return UserController.FALSE;
 
 		int fieldsToUpdate = request.countFieldsToUpdate();
 		int validatedFields = request.countValidatedFields();
 
 		if (validatedFields != fieldsToUpdate)
-			return "FALSE";
+			return UserController.FALSE;
 
 		request.updateUserFromRepository(userRepository);
-		return "TRUE";
+		return UserController.TRUE;
 	}
 
 	@Override
-	public String isVerified(String email) {
+	public boolean isVerified(String email) {
 		email = email.trim();
-		if (!userRepository.existsUserWithEmail(email))
-			return "FALSE";
+		if (!userExists(email))
+			return false;
 
-		DbUser user = userRepository.selectUserByEmail(email);
-		return user.isVerified() ? "TRUE" : "FALSE";
+		User user = userRepository.selectUserByEmail(email);
+		return user.isVerified();
 	}
 
 	@Override
-	public String isTokenActive(String tokenHash) {
-		boolean isActive = authenticationManager.isTokenActive(tokenHash);
-		return isActive ? "TRUE" : "FALSE";
+	public boolean isTokenRegistered(Token token) {
+		return authenticationManager.isTokenRegistered(token);
 	}
 
-	public void setUserRepository(DbUserRepository userRepository) {
+	private boolean isValid(Token token) {
+		if (isNull(token))
+			return false;
+		return authenticationManager.isTokenRegistered(token);
+	}
+
+	private boolean isNull(Token token) {
+		return token == null || token.getToken() == null || token.getEmail() == null;
+	}
+
+	private boolean isValid(User user) {
+		if (isNull(user))
+			return false;
+
+		if (!userExists(user.getEmail()))
+			return false;
+
+		return isCorrectPassword(user);
+	}
+
+	private boolean isNull(User user) {
+		return user == null || user.getEmail() == null || user.getPassword() == null;
+	}
+
+	private boolean isCorrectPassword(User user) {
+		User u = userRepository.selectUserByEmail(user.getEmail());
+		return u.getHashedPassword().equals(user.getHashedPassword());
+	}
+
+	private boolean userExists(String email) {
+		return userRepository.existsUserWithEmail(email);
+	}
+
+	private boolean isNull(UserUpdateRequest request) {
+		return request == null || request.getLoginEmail() == null
+				|| request.getLoginPassword() == null;
+	}
+
+	public void setUserRepository(UserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
 

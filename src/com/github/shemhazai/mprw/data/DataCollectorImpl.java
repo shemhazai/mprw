@@ -84,11 +84,17 @@ public class DataCollectorImpl implements DataCollector {
 			if (riverStatusRepository.existsRiverStatusWithRiverIdAndDate(river.getId(), date))
 				continue;
 
-			int level = Integer.parseInt(columns.get(1).text());
-
 			RiverStatus riverStatus = riverStatusRepository.createRiverStatus(river.getId());
 			riverStatus.setDate(date);
+
+			int level;
+			try {
+				level = Integer.parseInt(columns.get(1).text());
+			} catch (NumberFormatException e) {
+				level = 0;
+			}
 			riverStatus.setLevel(level);
+
 			riverStatusRepository.updateRiverStatus(riverStatus.getId(), riverStatus);
 		}
 	}

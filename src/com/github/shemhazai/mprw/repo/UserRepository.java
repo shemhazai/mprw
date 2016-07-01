@@ -2,24 +2,24 @@ package com.github.shemhazai.mprw.repo;
 
 import java.util.List;
 
-import com.github.shemhazai.mprw.domain.DbUser;
+import com.github.shemhazai.mprw.domain.User;
 
-public interface DbUserRepository {
+public interface UserRepository {
 	public void createUserTableIfNotExists();
 
-	public DbUser selectUserById(int id);
+	public User selectUserById(int id);
 
-	public DbUser selectUserByEmail(String email);
+	public User selectUserByEmail(String email);
 
-	public List<DbUser> selectAllUsers();
+	public List<User> selectAllUsers();
 
-	public List<DbUser> selectUsersWithEmailAlert();
+	public List<User> selectUsersWithEmailAlert();
 
 	public boolean existsUserWithEmail(String email);
 
-	public DbUser createUser(String email);
+	public User createUser(String email);
 
-	public void updateUser(int id, DbUser user);
+	public void updateUser(int id, User user);
 
 	public void updateUserFirstName(int id, String firstName);
 

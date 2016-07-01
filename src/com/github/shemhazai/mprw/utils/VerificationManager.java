@@ -3,16 +3,16 @@ package com.github.shemhazai.mprw.utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.github.shemhazai.mprw.domain.DbUser;
-import com.github.shemhazai.mprw.repo.DbUserRepository;
+import com.github.shemhazai.mprw.domain.User;
+import com.github.shemhazai.mprw.repo.UserRepository;
 
 @Component
 public class VerificationManager {
 
 	@Autowired
-	private DbUserRepository userRepository;
+	private UserRepository userRepository;
 
-	public synchronized String createVerifyString(DbUser user) {
+	public synchronized String createVerifyString(User user) {
 		String string = user.getId() + ":" + user.getEmail();
 		HashGenerator hasher = new HashGenerator();
 		String verifyString = hasher.hash(string);
@@ -25,7 +25,7 @@ public class VerificationManager {
 
 		String verifyString = email + "/" + hash;
 
-		DbUser user = userRepository.selectUserByEmail(email);
+		User user = userRepository.selectUserByEmail(email);
 		String currVerifyString = createVerifyString(user);
 		if (currVerifyString.equalsIgnoreCase(verifyString)) {
 			userRepository.updateUserVerified(user.getId(), true);
@@ -35,11 +35,11 @@ public class VerificationManager {
 		return false;
 	}
 
-	public DbUserRepository getUserRepository() {
+	public UserRepository getUserRepository() {
 		return userRepository;
 	}
 
-	public void setUserRepository(DbUserRepository userRepository) {
+	public void setUserRepository(UserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
 

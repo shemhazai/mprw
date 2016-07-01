@@ -2,20 +2,30 @@ package com.github.shemhazai.mprw.domain;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.shemhazai.mprw.utils.HashGenerator;
+
 public class User implements Serializable {
 
 	private static final long serialVersionUID = -1095994647013771174L;
 
+	@JsonIgnore
+	private int id;
 	private String firstName;
 	private String lastName;
 	private String email;
+	@JsonIgnore
 	private String password;
+	@JsonIgnore
+	private String hashedPassword;
 	private String phone;
 	private boolean mailAlert;
 	private boolean phoneAlert;
+	@JsonIgnore
+	private boolean verified;
 
-	public User() {
-
+	public int getId() {
+		return id;
 	}
 
 	public String getFirstName() {
@@ -34,6 +44,10 @@ public class User implements Serializable {
 		return password;
 	}
 
+	public String getHashedPassword() {
+		return hashedPassword;
+	}
+
 	public String getPhone() {
 		return phone;
 	}
@@ -44,6 +58,14 @@ public class User implements Serializable {
 
 	public boolean isPhoneAlert() {
 		return phoneAlert;
+	}
+
+	public boolean isVerified() {
+		return verified;
+	}
+
+	public void setId(int id) {
+		this.id = id;
 	}
 
 	public void setFirstName(String firstName) {
@@ -60,6 +82,11 @@ public class User implements Serializable {
 
 	public void setPassword(String password) {
 		this.password = password;
+		hashedPassword = new HashGenerator().hash(password);
+	}
+
+	public void setHashedPassword(String hashedPassword) {
+		this.hashedPassword = hashedPassword;
 	}
 
 	public void setPhone(String phone) {
@@ -74,17 +101,25 @@ public class User implements Serializable {
 		this.phoneAlert = phoneAlert;
 	}
 
+	public void setVerified(boolean verified) {
+		this.verified = verified;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((email == null) ? 0 : email.hashCode());
 		result = prime * result + ((firstName == null) ? 0 : firstName.hashCode());
+		result = prime * result
+				+ ((hashedPassword == null) ? 0 : hashedPassword.hashCode());
+		result = prime * result + id;
 		result = prime * result + ((lastName == null) ? 0 : lastName.hashCode());
 		result = prime * result + (mailAlert ? 1231 : 1237);
 		result = prime * result + ((password == null) ? 0 : password.hashCode());
 		result = prime * result + ((phone == null) ? 0 : phone.hashCode());
 		result = prime * result + (phoneAlert ? 1231 : 1237);
+		result = prime * result + (verified ? 1231 : 1237);
 		return result;
 	}
 
@@ -107,6 +142,13 @@ public class User implements Serializable {
 				return false;
 		} else if (!firstName.equals(other.firstName))
 			return false;
+		if (hashedPassword == null) {
+			if (other.hashedPassword != null)
+				return false;
+		} else if (!hashedPassword.equals(other.hashedPassword))
+			return false;
+		if (id != other.id)
+			return false;
 		if (lastName == null) {
 			if (other.lastName != null)
 				return false;
@@ -126,16 +168,17 @@ public class User implements Serializable {
 			return false;
 		if (phoneAlert != other.phoneAlert)
 			return false;
+		if (verified != other.verified)
+			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "User [firstName=" + firstName + ", lastName=" + lastName + ", email=" + email + ", password=" + password
-				+ ", phone=" + phone + ", mailAlert=" + mailAlert + ", phoneAlert=" + phoneAlert + "]";
+		return "User [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName
+				+ ", email=" + email + ", password=" + password + ", hashedPassword="
+				+ hashedPassword + ", phone=" + phone + ", mailAlert=" + mailAlert
+				+ ", phoneAlert=" + phoneAlert + ", verified=" + verified + "]";
 	}
-	
-	
-
 
 }

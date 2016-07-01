@@ -1,6 +1,6 @@
 package com.github.shemhazai.mprw.domain;
 
-import com.github.shemhazai.mprw.repo.DbUserRepository;
+import com.github.shemhazai.mprw.repo.UserRepository;
 import com.github.shemhazai.mprw.utils.HashGenerator;
 import com.github.shemhazai.mprw.utils.UserValidator;
 
@@ -129,8 +129,8 @@ public class UserUpdateRequest {
 		return validatedFields;
 	}
 
-	public void updateUserFromRepository(DbUserRepository userRepository) {
-		DbUser user = userRepository.selectUserByEmail(loginEmail);
+	public void updateUserFromRepository(UserRepository userRepository) {
+		User user = userRepository.selectUserByEmail(loginEmail);
 
 		if (email != null)
 			userRepository.updateUserEmail(user.getId(), email);
@@ -158,7 +158,8 @@ public class UserUpdateRequest {
 		result = prime * result + ((firstName == null) ? 0 : firstName.hashCode());
 		result = prime * result + ((lastName == null) ? 0 : lastName.hashCode());
 		result = prime * result + ((loginEmail == null) ? 0 : loginEmail.hashCode());
-		result = prime * result + ((loginPassword == null) ? 0 : loginPassword.hashCode());
+		result = prime * result
+				+ ((loginPassword == null) ? 0 : loginPassword.hashCode());
 		result = prime * result + ((mailAlert == null) ? 0 : mailAlert.hashCode());
 		result = prime * result + ((password == null) ? 0 : password.hashCode());
 		result = prime * result + ((phone == null) ? 0 : phone.hashCode());
@@ -225,9 +226,10 @@ public class UserUpdateRequest {
 
 	@Override
 	public String toString() {
-		return "UserUpdateRequest [loginEmail=" + loginEmail + ", loginPassword=" + loginPassword + ", firstName="
-				+ firstName + ", lastName=" + lastName + ", email=" + email + ", password=" + password + ", phone="
-				+ phone + ", phoneAlert=" + phoneAlert + ", mailAlert=" + mailAlert + "]";
+		return "UserUpdateRequest [loginEmail=" + loginEmail + ", loginPassword="
+				+ loginPassword + ", firstName=" + firstName + ", lastName=" + lastName
+				+ ", email=" + email + ", password=" + password + ", phone=" + phone
+				+ ", phoneAlert=" + phoneAlert + ", mailAlert=" + mailAlert + "]";
 	}
 
 }

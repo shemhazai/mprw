@@ -67,11 +67,6 @@ public class Token implements Serializable {
 				return false;
 		} else if (!email.equals(other.email))
 			return false;
-		if (expireDate == null) {
-			if (other.expireDate != null)
-				return false;
-		} else if (!expireDate.equals(other.expireDate))
-			return false;
 		if (token == null) {
 			if (other.token != null)
 				return false;
@@ -82,7 +77,8 @@ public class Token implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Token [email=" + email + ", token=" + token + ", expireDate=" + expireDate + "]";
+		return "Token [email=" + email + ", token=" + token + ", expireDate=" + expireDate
+				+ "]";
 	}
 
 }

@@ -1,5 +1,6 @@
 package com.github.shemhazai.mprw.controller;
 
+import javax.security.sasl.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,23 +19,31 @@ import com.github.shemhazai.mprw.service.UserService;
 @RequestMapping("/rest/user")
 public class UserController {
 
+	public static final String TRUE = "TRUE";
+	public static final String FALSE = "FALSE";
+	public static final String UNAUTHORIZED = "UNAUTHORIZED";
+
 	@Autowired
 	private UserService userService;
 
 	@RequestMapping(value = "/createToken", method = RequestMethod.POST)
 	public String createToken(@RequestBody User user) {
-		return userService.createToken(user);
+		try {
+			return userService.createToken(user).getToken();
+		} catch (AuthenticationException e) {
+			return UNAUTHORIZED;
+		}
 	}
 
 	@RequestMapping(value = "/createUser", method = RequestMethod.POST)
 	public String createUser(@RequestBody User user) {
-		return userService.createUser(user);
+		return userService.saveUser(user);
 	}
 
-	@RequestMapping(value = "/createVerifyLink", method = RequestMethod.POST)
+	@RequestMapping(value = "/sendVerifyLink", method = RequestMethod.POST)
 	public String createVerifyLink(HttpServletRequest request, @RequestBody Token token) {
-		return userService.createVerifyLink(token, request.getScheme(), request.getServerName(),
-				request.getServerPort() + "");
+		return userService.sendVerifyLink(token, request.getScheme(),
+				request.getServerName(), request.getServerPort() + "");
 	}
 
 	@RequestMapping(value = "/verify/{email}/{hash}", method = RequestMethod.GET)
@@ -54,12 +63,16 @@ public class UserController {
 
 	@RequestMapping(value = "/isVerified", method = RequestMethod.POST)
 	public String isVerified(@RequestBody String email) {
-		return userService.isVerified(email);
+		if (userService.isVerified(email))
+			return TRUE;
+		return FALSE;
 	}
 
-	@RequestMapping(value = "/isTokenActive", method = RequestMethod.POST)
-	public String isTokenActive(@RequestBody String tokenHash) {
-		return userService.isTokenActive(tokenHash);
+	@RequestMapping(value = "/isTokenRegistered", method = RequestMethod.POST)
+	public String isTokenActive(@RequestBody Token token) {
+		if (userService.isTokenRegistered(token))
+			return TRUE;
+		return FALSE;
 	}
 
 	public UserService getUserService() {
