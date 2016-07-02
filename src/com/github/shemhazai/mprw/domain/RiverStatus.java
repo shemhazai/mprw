@@ -88,7 +88,8 @@ public class RiverStatus implements Serializable {
 
 	@Override
 	public String toString() {
-		return "RiverStatus [id=" + id + ", riverId=" + riverId + ", date=" + date + ", level=" + level + "]";
+		return "RiverStatus [id=" + id + ", riverId=" + riverId + ", date="
+				+ date + ", level=" + level + "]";
 	}
 
 }

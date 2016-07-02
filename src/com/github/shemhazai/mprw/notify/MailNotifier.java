@@ -89,7 +89,8 @@ public class MailNotifier implements Notifier {
 	public void notifyEveryone(List<String> contacts, String subject, String text) {
 		try {
 			Message message = createMessage(subject, text);
-			message.setRecipient(Message.RecipientType.TO, new InternetAddress(adminEmail));
+			message.setRecipient(Message.RecipientType.TO,
+					new InternetAddress(adminEmail));
 
 			for (String recipient : contacts) {
 				InternetAddress address = new InternetAddress(recipient);
@@ -102,7 +103,8 @@ public class MailNotifier implements Notifier {
 		}
 	}
 
-	private Message createMessage(String subject, String text) throws Exception {
+	private Message createMessage(String subject, String text)
+			throws Exception {
 		Session session = createSession();
 		Message message = new MimeMessage(session);
 		message.setFrom(new InternetAddress(email));

@@ -65,7 +65,8 @@ public class DataCollectorImpl implements DataCollector {
 	}
 
 	@Transactional
-	private void collectFromRiver(River river) throws IOException, ParseException {
+	private void collectFromRiver(River river)
+			throws IOException, ParseException {
 		String year = Calendar.getInstance().get(Calendar.YEAR) + "";
 		String urlString = createUrlString(river.getName());
 
@@ -81,10 +82,12 @@ public class DataCollectorImpl implements DataCollector {
 			DateFormat dateFormat = new SimpleDateFormat("HH:mm-dd.MM.yyyy");
 			Date date = dateFormat.parse(columns.get(0).text() + "." + year);
 
-			if (riverStatusRepository.existsRiverStatusWithRiverIdAndDate(river.getId(), date))
+			if (riverStatusRepository.existsRiverStatusWithRiverIdAndDate(
+					river.getId(), date))
 				continue;
 
-			RiverStatus riverStatus = riverStatusRepository.createRiverStatus(river.getId());
+			RiverStatus riverStatus = riverStatusRepository.createRiverStatus(
+					river.getId());
 			riverStatus.setDate(date);
 
 			int level;
@@ -95,11 +98,13 @@ public class DataCollectorImpl implements DataCollector {
 			}
 			riverStatus.setLevel(level);
 
-			riverStatusRepository.updateRiverStatus(riverStatus.getId(), riverStatus);
+			riverStatusRepository.updateRiverStatus(riverStatus.getId(),
+					riverStatus);
 		}
 	}
 
 	private String createUrlString(String riverName) {
-		return (baseUrl.endsWith("/") ? baseUrl : baseUrl + "/") + "wizualizacja/punkt_pomiarowy.php?prze=" + riverName;
+		return (baseUrl.endsWith("/") ? baseUrl : baseUrl + "/")
+				+ "wizualizacja/punkt_pomiarowy.php?prze=" + riverName;
 	}
 }

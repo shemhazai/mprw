@@ -61,7 +61,8 @@ public class River implements Serializable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + alertLevel;
-		result = prime * result + ((description == null) ? 0 : description.hashCode());
+		result = prime * result
+				+ ((description == null) ? 0 : description.hashCode());
 		result = prime * result + floodLevel;
 		result = prime * result + id;
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
@@ -98,7 +99,8 @@ public class River implements Serializable {
 
 	@Override
 	public String toString() {
-		return "River [id=" + id + ", name=" + name + ", description=" + description + ", floodLevel=" + floodLevel
-				+ ", alertLevel=" + alertLevel + "]";
+		return "River [id=" + id + ", name=" + name + ", description="
+				+ description + ", floodLevel=" + floodLevel + ", alertLevel="
+				+ alertLevel + "]";
 	}
 }

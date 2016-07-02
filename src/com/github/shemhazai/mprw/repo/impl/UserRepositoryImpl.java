@@ -97,7 +97,7 @@ public class UserRepositoryImpl implements UserRepository {
 		String sql = "update user set email = ?, passwordHash = ?, firstName = ?, lastName = ?,"
 				+ " phone = ?, verified = ?, mailAlert = ?, phoneAlert = ? where id = ?";
 		jdbcTemplate.update(sql,
-				new Object[] { user.getEmail(), user.getPassword(), user.getFirstName(),
+				new Object[] { user.getEmail(), user.getHashedPassword(), user.getFirstName(),
 						user.getLastName(), user.getPhone(), user.isVerified() ? 1 : 0,
 						user.isMailAlert() ? 1 : 0, user.isPhoneAlert() ? 1 : 0, id });
 	}

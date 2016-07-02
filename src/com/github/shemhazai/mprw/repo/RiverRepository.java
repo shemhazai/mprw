@@ -12,7 +12,7 @@ public interface RiverRepository {
 	public River selectRiverByName(String name);
 
 	public List<River> selectAllRivers();
-	
+
 	public List<River> selectRiversInDanger();
 
 	public River createRiver(String name);

@@ -39,13 +39,14 @@ public class RiverController {
 
 	@RequestMapping(value = "/selectLastRiverStatusesByRiverId/{riverId}/Limit/{limit}", method = RequestMethod.GET)
 	public List<RiverStatus> selectLastRiverStatusesByRiverIdLimit(@PathVariable int riverId, @PathVariable int limit) {
-		return riverStatusRepository.selectLastRiverStatusesByRiverIdLimit(riverId, limit);
+		return riverStatusRepository.selectLastRiverStatusesByRiverIdLimit(
+				riverId, limit);
 	}
 
 	@RequestMapping(value = "/selectLastAverageRiverStatusesByRiverId/{riverId}/WithInterval/{interval}/Limit/{limit}", method = RequestMethod.GET)
-	public List<RiverStatus> selectLastAverageRiverStatusesByRiverIdWithIntervalLimit(@PathVariable int riverId,
-			@PathVariable String interval, @PathVariable int limit) {
-		return riverStatusRepository.selectLastAverageRiverStatusesByRiverIdWithIntervalLimit(riverId, interval, limit);
+	public List<RiverStatus> selectLastAverageRiverStatusesByRiverIdWithIntervalLimit(@PathVariable int riverId, @PathVariable String interval, @PathVariable int limit) {
+		return riverStatusRepository.selectLastAverageRiverStatusesByRiverIdWithIntervalLimit(
+				riverId, interval, limit);
 	}
 
 	public RiverRepository getRiverRepository() {

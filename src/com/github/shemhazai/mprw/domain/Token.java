@@ -48,7 +48,8 @@ public class Token implements Serializable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((email == null) ? 0 : email.hashCode());
-		result = prime * result + ((expireDate == null) ? 0 : expireDate.hashCode());
+		result = prime * result
+				+ ((expireDate == null) ? 0 : expireDate.hashCode());
 		result = prime * result + ((token == null) ? 0 : token.hashCode());
 		return result;
 	}
@@ -77,8 +78,8 @@ public class Token implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Token [email=" + email + ", token=" + token + ", expireDate=" + expireDate
-				+ "]";
+		return "Token [email=" + email + ", token=" + token + ", expireDate="
+				+ expireDate + "]";
 	}
 
 }

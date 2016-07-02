@@ -103,12 +103,13 @@ public class AppInitializer implements WebApplicationInitializer {
 	}
 
 	@Override
-	public void onStartup(ServletContext servletContext) throws ServletException {
+	public void onStartup(ServletContext servletContext)
+			throws ServletException {
 		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
 		context.register(AppConfig.class);
 		servletContext.addListener(new ContextLoaderListener(context));
-		ServletRegistration.Dynamic dispatcher = servletContext
-				.addServlet("DispatcherServlet", new DispatcherServlet(context));
+		ServletRegistration.Dynamic dispatcher = servletContext.addServlet(
+				"DispatcherServlet", new DispatcherServlet(context));
 		dispatcher.setLoadOnStartup(1);
 		dispatcher.addMapping("/*");
 	}
@@ -157,10 +158,12 @@ public class AppInitializer implements WebApplicationInitializer {
 
 			for (River river : listOfRiver) {
 				builder.append(" * " + river.getDescription());
+				builder.append(", obecny poziom: "
+						+ lastRiverLevel(river.getId()) + "cm");
 				builder.append(
-						", obecny poziom: " + lastRiverLevel(river.getId()) + "cm");
-				builder.append(", poziom powodziowy: " + river.getFloodLevel() + "cm");
-				builder.append(", poziom alarmowy: " + river.getAlertLevel() + "cm.\n");
+						", poziom powodziowy: " + river.getFloodLevel() + "cm");
+				builder.append(", poziom alarmowy: " + river.getAlertLevel()
+						+ "cm.\n");
 			}
 
 			List<User> users = userRepository.selectUsersWithEmailAlert();
@@ -178,8 +181,8 @@ public class AppInitializer implements WebApplicationInitializer {
 	}
 
 	private int lastRiverLevel(int riverId) {
-		List<RiverStatus> list = riverStatusRepository
-				.selectLastRiverStatusesByRiverIdLimit(riverId, 1);
+		List<RiverStatus> list = riverStatusRepository.selectLastRiverStatusesByRiverIdLimit(
+				riverId, 1);
 		return list.get(0).getLevel();
 	}
 }

@@ -2,26 +2,26 @@ package com.github.shemhazai.mprw.domain;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.github.shemhazai.mprw.utils.HashGenerator;
 
 public class User implements Serializable {
 
 	private static final long serialVersionUID = -1095994647013771174L;
-
-	@JsonIgnore
+	@JsonProperty(access = Access.WRITE_ONLY)
 	private int id;
 	private String firstName;
 	private String lastName;
 	private String email;
-	@JsonIgnore
+	@JsonProperty(access = Access.WRITE_ONLY)
 	private String password;
-	@JsonIgnore
+	@JsonProperty(access = Access.WRITE_ONLY)
 	private String hashedPassword;
 	private String phone;
 	private boolean mailAlert;
 	private boolean phoneAlert;
-	@JsonIgnore
+	@JsonProperty(access = Access.WRITE_ONLY)
 	private boolean verified;
 
 	public int getId() {
@@ -82,7 +82,9 @@ public class User implements Serializable {
 
 	public void setPassword(String password) {
 		this.password = password;
-		hashedPassword = new HashGenerator().hash(password);
+		if (password != null) {
+			hashedPassword = new HashGenerator().hash(password);
+		}
 	}
 
 	public void setHashedPassword(String hashedPassword) {
@@ -110,13 +112,16 @@ public class User implements Serializable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((email == null) ? 0 : email.hashCode());
-		result = prime * result + ((firstName == null) ? 0 : firstName.hashCode());
+		result = prime * result
+				+ ((firstName == null) ? 0 : firstName.hashCode());
 		result = prime * result
 				+ ((hashedPassword == null) ? 0 : hashedPassword.hashCode());
 		result = prime * result + id;
-		result = prime * result + ((lastName == null) ? 0 : lastName.hashCode());
+		result = prime * result
+				+ ((lastName == null) ? 0 : lastName.hashCode());
 		result = prime * result + (mailAlert ? 1231 : 1237);
-		result = prime * result + ((password == null) ? 0 : password.hashCode());
+		result = prime * result
+				+ ((password == null) ? 0 : password.hashCode());
 		result = prime * result + ((phone == null) ? 0 : phone.hashCode());
 		result = prime * result + (phoneAlert ? 1231 : 1237);
 		result = prime * result + (verified ? 1231 : 1237);
@@ -175,10 +180,11 @@ public class User implements Serializable {
 
 	@Override
 	public String toString() {
-		return "User [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName
-				+ ", email=" + email + ", password=" + password + ", hashedPassword="
-				+ hashedPassword + ", phone=" + phone + ", mailAlert=" + mailAlert
-				+ ", phoneAlert=" + phoneAlert + ", verified=" + verified + "]";
+		return "User [id=" + id + ", firstName=" + firstName + ", lastName="
+				+ lastName + ", email=" + email + ", password=" + password
+				+ ", hashedPassword=" + hashedPassword + ", phone=" + phone
+				+ ", mailAlert=" + mailAlert + ", phoneAlert=" + phoneAlert
+				+ ", verified=" + verified + "]";
 	}
 
 }

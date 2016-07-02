@@ -136,7 +136,8 @@ public class UserUpdateRequest {
 			userRepository.updateUserEmail(user.getId(), email);
 		if (password != null) {
 			HashGenerator hasher = new HashGenerator();
-			userRepository.updateUserPasswordHash(user.getId(), hasher.hash(password));
+			userRepository.updateUserPasswordHash(user.getId(),
+					hasher.hash(password));
 		}
 		if (firstName != null)
 			userRepository.updateUserFirstName(user.getId(), firstName);
@@ -155,15 +156,21 @@ public class UserUpdateRequest {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((email == null) ? 0 : email.hashCode());
-		result = prime * result + ((firstName == null) ? 0 : firstName.hashCode());
-		result = prime * result + ((lastName == null) ? 0 : lastName.hashCode());
-		result = prime * result + ((loginEmail == null) ? 0 : loginEmail.hashCode());
+		result = prime * result
+				+ ((firstName == null) ? 0 : firstName.hashCode());
+		result = prime * result
+				+ ((lastName == null) ? 0 : lastName.hashCode());
+		result = prime * result
+				+ ((loginEmail == null) ? 0 : loginEmail.hashCode());
 		result = prime * result
 				+ ((loginPassword == null) ? 0 : loginPassword.hashCode());
-		result = prime * result + ((mailAlert == null) ? 0 : mailAlert.hashCode());
-		result = prime * result + ((password == null) ? 0 : password.hashCode());
+		result = prime * result
+				+ ((mailAlert == null) ? 0 : mailAlert.hashCode());
+		result = prime * result
+				+ ((password == null) ? 0 : password.hashCode());
 		result = prime * result + ((phone == null) ? 0 : phone.hashCode());
-		result = prime * result + ((phoneAlert == null) ? 0 : phoneAlert.hashCode());
+		result = prime * result
+				+ ((phoneAlert == null) ? 0 : phoneAlert.hashCode());
 		return result;
 	}
 
@@ -226,10 +233,12 @@ public class UserUpdateRequest {
 
 	@Override
 	public String toString() {
-		return "UserUpdateRequest [loginEmail=" + loginEmail + ", loginPassword="
-				+ loginPassword + ", firstName=" + firstName + ", lastName=" + lastName
-				+ ", email=" + email + ", password=" + password + ", phone=" + phone
-				+ ", phoneAlert=" + phoneAlert + ", mailAlert=" + mailAlert + "]";
+		return "UserUpdateRequest [loginEmail=" + loginEmail
+				+ ", loginPassword=" + loginPassword + ", firstName="
+				+ firstName + ", lastName=" + lastName + ", email=" + email
+				+ ", password=" + password + ", phone=" + phone
+				+ ", phoneAlert=" + phoneAlert + ", mailAlert=" + mailAlert
+				+ "]";
 	}
 
 }

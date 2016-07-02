@@ -16,8 +16,7 @@ public interface RiverStatusRepository {
 
 	public List<RiverStatus> selectLastRiverStatusesByRiverIdLimit(int riverId, int limit);
 
-	public List<RiverStatus> selectLastAverageRiverStatusesByRiverIdWithIntervalLimit(int riverId, String interval,
-			int limit);
+	public List<RiverStatus> selectLastAverageRiverStatusesByRiverIdWithIntervalLimit(int riverId, String interval, int limit);
 
 	public boolean existsRiverStatusWithRiverIdAndDate(int riverId, Date date);
 

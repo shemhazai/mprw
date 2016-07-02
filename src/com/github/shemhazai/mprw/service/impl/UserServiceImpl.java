@@ -136,8 +136,11 @@ public class UserServiceImpl implements UserService {
 	}
 
 	private boolean isValid(User user) {
-		if (isNull(user))
+		if (isNull(user)) {
+			System.out.println(user);
+			System.out.println("NULLL");
 			return false;
+		}
 
 		if (!userExists(user.getEmail()))
 			return false;
@@ -146,7 +149,8 @@ public class UserServiceImpl implements UserService {
 	}
 
 	private boolean isNull(User user) {
-		return user == null || user.getEmail() == null || user.getPassword() == null;
+		return user == null || user.getEmail() == null
+				|| user.getHashedPassword() == null;
 	}
 
 	private boolean isCorrectPassword(User user) {

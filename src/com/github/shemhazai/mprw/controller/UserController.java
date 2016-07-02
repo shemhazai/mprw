@@ -41,9 +41,10 @@ public class UserController {
 	}
 
 	@RequestMapping(value = "/sendVerifyLink", method = RequestMethod.POST)
-	public String createVerifyLink(HttpServletRequest request, @RequestBody Token token) {
+	public String sendVerifyLink(HttpServletRequest request, @RequestBody Token token) {
 		return userService.sendVerifyLink(token, request.getScheme(),
-				request.getServerName(), request.getServerPort() + "");
+				request.getServerName(),
+				Integer.toString(request.getServerPort()));
 	}
 
 	@RequestMapping(value = "/verify/{email}/{hash}", method = RequestMethod.GET)
@@ -69,7 +70,7 @@ public class UserController {
 	}
 
 	@RequestMapping(value = "/isTokenRegistered", method = RequestMethod.POST)
-	public String isTokenActive(@RequestBody Token token) {
+	public String isTokenRegistered(@RequestBody Token token) {
 		if (userService.isTokenRegistered(token))
 			return TRUE;
 		return FALSE;
