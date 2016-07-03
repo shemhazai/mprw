@@ -47,9 +47,11 @@ public class RiverRepositoryImpl implements RiverRepository {
 	public River selectRiverById(int id) {
 		try {
 			String sql = "select * from river where id = ?";
-			return jdbcTemplate.queryForObject(sql, new Object[] { id }, new RiverMapper());
+			return jdbcTemplate.queryForObject(sql, new Object[] { id },
+					new RiverMapper());
 		} catch (EmptyResultDataAccessException e) {
-			return null;
+			throw new NullPointerException("River with id: " + id
+					+ " not found!");
 		}
 	}
 
@@ -57,9 +59,11 @@ public class RiverRepositoryImpl implements RiverRepository {
 	public River selectRiverByName(String name) {
 		try {
 			String sql = "select * from river where name = ?";
-			return jdbcTemplate.queryForObject(sql, new Object[] { name }, new RiverMapper());
+			return jdbcTemplate.queryForObject(sql, new Object[] { name },
+					new RiverMapper());
 		} catch (EmptyResultDataAccessException e) {
-			return null;
+			throw new NullPointerException("River with name: " + name
+					+ " not found!");
 		}
 	}
 
@@ -72,7 +76,8 @@ public class RiverRepositoryImpl implements RiverRepository {
 	@Override
 	public List<River> selectRiversInDanger() {
 		String sql = "select distinct * from river as r where alertLevel <= ( "
-				+ "select rs.level from riverStatus as rs where rs.riverId = r.id " + "order by rs.date desc limit 1);";
+				+ "select rs.level from riverStatus as rs where rs.riverId = r.id "
+				+ "order by rs.date desc limit 1);";
 		return jdbcTemplate.query(sql, new RiverMapper());
 	}
 
@@ -90,8 +95,9 @@ public class RiverRepositoryImpl implements RiverRepository {
 	@Override
 	public void updateRiver(int id, River river) {
 		String sql = "update river set name = ?, description = ?, alertLevel = ?, floodLevel = ? where id = ?";
-		jdbcTemplate.update(sql, new Object[] { river.getName(), river.getDescription(), river.getAlertLevel(),
-				river.getFloodLevel(), id });
+		jdbcTemplate.update(sql,
+				new Object[] { river.getName(), river.getDescription(),
+						river.getAlertLevel(), river.getFloodLevel(), id });
 	}
 
 	@Override

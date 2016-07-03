@@ -1,5 +1,6 @@
 package com.github.shemhazai.mprw.repo.impl;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -45,9 +46,11 @@ public class RiverStatusRepositoryImpl implements RiverStatusRepository {
 	public RiverStatus selectRiverStatusById(int id) {
 		try {
 			String sql = "select * from riverStatus where id = ?";
-			return jdbcTemplate.queryForObject(sql, new Object[] { id }, new RiverStatusMapper());
+			return jdbcTemplate.queryForObject(sql, new Object[] { id },
+					new RiverStatusMapper());
 		} catch (EmptyResultDataAccessException e) {
-			return null;
+			throw new NullPointerException("RiverStatus with id " + id
+					+ " not found!");
 		}
 	}
 
@@ -60,21 +63,35 @@ public class RiverStatusRepositoryImpl implements RiverStatusRepository {
 	@Override
 	public List<RiverStatus> selectAllRiverStatusesByRiverId(int riverId) {
 		String sql = "select * from riverStatus where riverId = ? order by date desc";
-		return jdbcTemplate.query(sql, new Object[] { riverId }, new RiverStatusMapper());
+		return jdbcTemplate.query(sql, new Object[] { riverId },
+				new RiverStatusMapper());
 	}
 
 	@Override
 	public List<RiverStatus> selectLastRiverStatusesByRiverIdLimit(int riverId, int limit) {
 		String sql = "select * from riverStatus where riverId = ? order by date desc limit ?";
-		return jdbcTemplate.query(sql, new Object[] { riverId, limit }, new RiverStatusMapper());
+		return jdbcTemplate.query(sql, new Object[] { riverId, limit },
+				new RiverStatusMapper());
 	}
 
 	@Override
-	public List<RiverStatus> selectLastAverageRiverStatusesByRiverIdWithIntervalLimit(int riverId, String interval,
-			int limit) {
+	public List<RiverStatus> selectLastAverageRiverStatusesByRiverIdWithIntervalLimit(int riverId, String interval, int limit) {
+		try {
+			String sql = buildQueryForLastAverageRiverStatus(riverId, interval,
+					limit);
+			return jdbcTemplate.query(sql, new Object[] { riverId, limit },
+					new RiverStatusMapper());
+		} catch (IllegalArgumentException e) {
+			return Collections.emptyList();
+		}
+	}
+
+	private String buildQueryForLastAverageRiverStatus(int riverId, String interval, int limit)
+			throws IllegalArgumentException {
 		StringBuilder sql = new StringBuilder();
-		sql.append("select id, riverId, date, round(avg(level), 0) as level from riverStatus "
-				+ "where riverId = ? group by ");
+		sql.append("select id, riverId, date, round(avg(level), 0) "
+				+ "as level from riverStatus where riverId = ? group by ");
+
 		if (interval.equalsIgnoreCase("month")) {
 			sql.append("concat(year(date), '/', month(date))");
 		} else if (interval.equalsIgnoreCase("week")) {
@@ -82,16 +99,18 @@ public class RiverStatusRepositoryImpl implements RiverStatusRepository {
 		} else if (interval.equalsIgnoreCase("day")) {
 			sql.append("concat(year(date), '/', month(date), '/', day(date))");
 		} else {
-			return null;
+			throw new IllegalArgumentException("Bad interval: " + interval);
 		}
+
 		sql.append(" order by date desc limit ?");
-		return jdbcTemplate.query(sql.toString(), new Object[] { riverId, limit }, new RiverStatusMapper());
+		return sql.toString();
 	}
 
 	@Override
 	public boolean existsRiverStatusWithRiverIdAndDate(int riverId, Date date) {
 		String sql = "select count(*) from riverStatus where riverId = ? and date = ?";
-		return jdbcTemplate.queryForObject(sql, new Object[] { riverId, date }, Integer.class) != 0;
+		return jdbcTemplate.queryForObject(sql, new Object[] { riverId, date },
+				Integer.class) != 0;
 	}
 
 	@Override
@@ -108,8 +127,8 @@ public class RiverStatusRepositoryImpl implements RiverStatusRepository {
 	@Override
 	public void updateRiverStatus(int id, RiverStatus riverStatus) {
 		String sql = "update riverStatus set riverId = ?, date = ?, level = ? where id = ?";
-		jdbcTemplate.update(sql,
-				new Object[] { riverStatus.getRiverId(), riverStatus.getDate(), riverStatus.getLevel(), id });
+		jdbcTemplate.update(sql, new Object[] { riverStatus.getRiverId(),
+				riverStatus.getDate(), riverStatus.getLevel(), id });
 	}
 
 	@Override

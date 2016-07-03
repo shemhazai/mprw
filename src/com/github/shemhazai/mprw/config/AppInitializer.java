@@ -48,7 +48,7 @@ public class AppInitializer implements WebApplicationInitializer {
 	private List<Notifier> notifiers;
 
 	public AppInitializer() {
-
+		notifiers = new ArrayList<>();
 	}
 
 	public RiverRepository getRiverRepository() {
@@ -87,19 +87,12 @@ public class AppInitializer implements WebApplicationInitializer {
 		this.collector = collector;
 	}
 
-	public void setNotifiers(List<Notifier> notifiers) {
-		this.notifiers = notifiers;
-	}
-
 	public void addNotifier(Notifier notifier) {
-		if (notifiers == null)
-			notifiers = new ArrayList<>();
 		notifiers.add(notifier);
 	}
 
 	public void removeNotifier(Notifier notifier) {
-		if (notifiers != null)
-			notifiers.remove(notifier);
+		notifiers.remove(notifier);
 	}
 
 	@Override
@@ -148,30 +141,14 @@ public class AppInitializer implements WebApplicationInitializer {
 
 	@Scheduled(fixedDelay = 1800000)
 	public void analizeData() {
-
-		List<River> listOfRiver = riverRepository.selectRiversInDanger();
-
-		if (!listOfRiver.isEmpty()) {
-			StringBuilder builder = new StringBuilder();
-			builder.append("Uwaga.\n");
-			builder.append("Stan zagrożenia powodziowego na rzekach:\n");
-
-			for (River river : listOfRiver) {
-				builder.append(" * " + river.getDescription());
-				builder.append(", obecny poziom: "
-						+ lastRiverLevel(river.getId()) + "cm");
-				builder.append(
-						", poziom powodziowy: " + river.getFloodLevel() + "cm");
-				builder.append(", poziom alarmowy: " + river.getAlertLevel()
-						+ "cm.\n");
-			}
-
+		List<River> riversInDanger = riverRepository.selectRiversInDanger();
+		if (!riversInDanger.isEmpty()) {
 			List<User> users = userRepository.selectUsersWithEmailAlert();
 			List<String> contacts = new ArrayList<>();
 			users.forEach((u) -> contacts.add(u.getEmail()));
 
 			String subject = "Ostrzeżenie o zagrożeniu powodziowym.";
-			String message = builder.toString();
+			String message = buildMessage(riversInDanger);
 
 			logger.warn(message);
 			for (Notifier notifier : notifiers)
@@ -180,7 +157,24 @@ public class AppInitializer implements WebApplicationInitializer {
 
 	}
 
-	private int lastRiverLevel(int riverId) {
+	private String buildMessage(List<River> rivers) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Uwaga.\n");
+		builder.append("Stan zagrożenia powodziowego na rzekach:\n");
+		rivers.forEach((river) -> builder.append(buildRiverInfo(river)));
+		return builder.toString();
+	}
+
+	private String buildRiverInfo(River river) {
+		StringBuilder builder = new StringBuilder();
+		builder.append(" * " + river.getDescription());
+		builder.append(", obecny poziom: " + riverLevel(river.getId()) + "cm");
+		builder.append(", poziom powodziowy: " + river.getFloodLevel() + "cm");
+		builder.append(", poziom alarmowy: " + river.getAlertLevel() + "cm.\n");
+		return builder.toString();
+	}
+
+	private int riverLevel(int riverId) {
 		List<RiverStatus> list = riverStatusRepository.selectLastRiverStatusesByRiverIdLimit(
 				riverId, 1);
 		return list.get(0).getLevel();

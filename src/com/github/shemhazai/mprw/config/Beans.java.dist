@@ -40,8 +40,8 @@ public class Beans {
 	public DataSource dataSource() {
 		DriverManagerDataSource dataSource = new DriverManagerDataSource();
 		dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-		dataSource.setUrl("jdbc:mysql://your_address:3306/your_db");
-		dataSource.setUsername("username");
+		dataSource.setUrl("jdbc:mysql://localhost:3306/mprw");
+		dataSource.setUsername("user");
 		dataSource.setPassword("password");
 		return dataSource;
 	}
@@ -62,22 +62,23 @@ public class Beans {
 	public MailNotifier mailNotifier() {
 		MailNotifier notifier = new MailNotifier();
 		notifier.setProperties(mailProperties());
-		notifier.setAdminEmail("your@admin.com");
-		notifier.setEmail("system@account.com");
-		notifier.setLogin("system");
-		notifier.setPassword("system_password");
+		notifier.setAdminEmail("admin@domain.com");
+		notifier.setEmail("user@gmail.com");
+		notifier.setLogin("user");
+		notifier.setPassword("password");
 		return notifier;
 	}
 
-	// change your settings
 	private Properties mailProperties() {
 		Properties props = new Properties();
 		props.setProperty("mail.transport.protocol", "smtp");
 		props.setProperty("mail.host", "smtp.gmail.com");
 		props.setProperty("mail.smtp.auth", "true");
 		props.setProperty("mail.smtp.port", "465");
-		props.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+		props.setProperty("mail.smtp.socketFactory.class",
+				"javax.net.ssl.SSLSocketFactory");
 		props.setProperty("mail.smtp.socketFactory.fallback", "false");
 		return props;
 	}
 }
+
