@@ -47,7 +47,8 @@ public class UserRepositoryImpl implements UserRepository {
 			return jdbcTemplate.queryForObject(sql, new Object[] { id },
 					new UserMapper());
 		} catch (EmptyResultDataAccessException e) {
-			return null;
+			throw new IllegalArgumentException("User with id: " + id
+					+ " doesn't exist!");
 		}
 	}
 
@@ -58,7 +59,8 @@ public class UserRepositoryImpl implements UserRepository {
 			return jdbcTemplate.queryForObject(sql, new Object[] { email },
 					new UserMapper());
 		} catch (EmptyResultDataAccessException e) {
-			return null;
+			throw new IllegalArgumentException("User with email: " + email
+					+ " doesn't exist!");
 		}
 	}
 
@@ -97,9 +99,11 @@ public class UserRepositoryImpl implements UserRepository {
 		String sql = "update user set email = ?, passwordHash = ?, firstName = ?, lastName = ?,"
 				+ " phone = ?, verified = ?, mailAlert = ?, phoneAlert = ? where id = ?";
 		jdbcTemplate.update(sql,
-				new Object[] { user.getEmail(), user.getHashedPassword(), user.getFirstName(),
-						user.getLastName(), user.getPhone(), user.isVerified() ? 1 : 0,
-						user.isMailAlert() ? 1 : 0, user.isPhoneAlert() ? 1 : 0, id });
+				new Object[] { user.getEmail(), user.getHashedPassword(),
+						user.getFirstName(), user.getLastName(),
+						user.getPhone(), user.isVerified() ? 1 : 0,
+						user.isMailAlert() ? 1 : 0, user.isPhoneAlert() ? 1 : 0,
+						id });
 	}
 
 	@Override

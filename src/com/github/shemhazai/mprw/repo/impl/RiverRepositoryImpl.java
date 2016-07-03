@@ -50,8 +50,8 @@ public class RiverRepositoryImpl implements RiverRepository {
 			return jdbcTemplate.queryForObject(sql, new Object[] { id },
 					new RiverMapper());
 		} catch (EmptyResultDataAccessException e) {
-			throw new NullPointerException("River with id: " + id
-					+ " not found!");
+			throw new IllegalArgumentException("River with id: " + id
+					+ " doesn't exist!");
 		}
 	}
 
@@ -62,8 +62,8 @@ public class RiverRepositoryImpl implements RiverRepository {
 			return jdbcTemplate.queryForObject(sql, new Object[] { name },
 					new RiverMapper());
 		} catch (EmptyResultDataAccessException e) {
-			throw new NullPointerException("River with name: " + name
-					+ " not found!");
+			throw new IllegalArgumentException("River with name: " + name
+					+ " doesn't exist!");
 		}
 	}
 

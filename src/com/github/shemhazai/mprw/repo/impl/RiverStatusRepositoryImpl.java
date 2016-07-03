@@ -49,8 +49,8 @@ public class RiverStatusRepositoryImpl implements RiverStatusRepository {
 			return jdbcTemplate.queryForObject(sql, new Object[] { id },
 					new RiverStatusMapper());
 		} catch (EmptyResultDataAccessException e) {
-			throw new NullPointerException("RiverStatus with id " + id
-					+ " not found!");
+			throw new IllegalArgumentException("RiverStatus with id: " + id
+					+ " doesn't exist!");
 		}
 	}
 
