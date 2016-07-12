@@ -5,19 +5,19 @@ import java.util.List;
 import com.github.shemhazai.mprw.domain.River;
 
 public interface RiverRepository {
-	public void createRiverTableIfNotExists();
+  void createRiverTableIfNotExists();
 
-	public River selectRiverById(int id);
+  River selectRiverById(int id);
 
-	public River selectRiverByName(String name);
+  River selectRiverByName(String name);
 
-	public List<River> selectAllRivers();
+  List<River> selectAllRivers();
 
-	public List<River> selectRiversInDanger();
+  List<River> selectRiversInDanger();
 
-	public River createRiver(String name);
+  River createRiver(String name);
 
-	public void updateRiver(int id, River river);
+  void updateRiver(int id, River river);
 
-	public void deleteRiver(int id);
+  void deleteRiver(int id);
 }

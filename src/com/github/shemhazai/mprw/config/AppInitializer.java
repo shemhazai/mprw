@@ -24,7 +24,6 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 import com.github.shemhazai.mprw.data.DataCollector;
 import com.github.shemhazai.mprw.domain.River;
-import com.github.shemhazai.mprw.domain.RiverStatus;
 import com.github.shemhazai.mprw.domain.User;
 import com.github.shemhazai.mprw.notify.Notifier;
 import com.github.shemhazai.mprw.repo.RiverRepository;
@@ -34,149 +33,123 @@ import com.github.shemhazai.mprw.repo.UserRepository;
 @Configuration
 public class AppInitializer implements WebApplicationInitializer {
 
-	private final Logger logger = Logger.getLogger(getClass());
+  private final Logger logger = Logger.getLogger(getClass());
 
-	@Autowired
-	private RiverRepository riverRepository;
-	@Autowired
-	private RiverStatusRepository riverStatusRepository;
-	@Autowired
-	private UserRepository userRepository;
-	@Autowired
-	private DataCollector collector;
-	@Autowired
-	private List<Notifier> notifiers;
+  @Autowired
+  private RiverRepository riverRepository;
+  @Autowired
+  private RiverStatusRepository riverStatusRepository;
+  @Autowired
+  private UserRepository userRepository;
+  @Autowired
+  private DataCollector collector;
+  @Autowired
+  private List<Notifier> notifiers;
 
-	public AppInitializer() {
-		notifiers = new ArrayList<>();
-	}
+  public AppInitializer() {
+    notifiers = new ArrayList<>();
+  }
 
-	public RiverRepository getRiverRepository() {
-		return riverRepository;
-	}
+  @Override
+  public void onStartup(ServletContext servletContext) throws ServletException {
+    AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
+    context.register(AppConfig.class);
+    servletContext.addListener(new ContextLoaderListener(context));
+    ServletRegistration.Dynamic dispatcher =
+        servletContext.addServlet("DispatcherServlet", new DispatcherServlet(context));
+    dispatcher.setLoadOnStartup(1);
+    dispatcher.addMapping("/*");
+  }
 
-	public RiverStatusRepository getRiverStatusRepository() {
-		return riverStatusRepository;
-	}
+  @PostConstruct
+  public void postConstruct() {
+    riverRepository.createRiverTableIfNotExists();
+    riverStatusRepository.createRiverStatusTableIfNotExists();
+    userRepository.createUserTableIfNotExists();
+  }
 
-	public UserRepository getUserRepository() {
-		return userRepository;
-	}
+  @Scheduled(fixedDelay = 600000)
+  public void collectData() {
+    try {
+      collector.collect();
+    } catch (IOException | ParseException e) {
+      StringBuilder builder = new StringBuilder();
+      builder.append("Errors occured.\n");
+      builder.append("Exception: " + e.getClass() + "\n");
+      builder.append("Message: " + e.getMessage() + "\n");
+      builder.append("Date: " + new Date() + "\n");
+      builder.append("\nStackTrace:\n");
 
-	public DataCollector getCollector() {
-		return collector;
-	}
+      StringWriter stackTrace = new StringWriter();
+      e.printStackTrace(new PrintWriter(stackTrace));
+      builder.append(stackTrace + "\n");
 
-	public List<Notifier> getNotifiers() {
-		return notifiers;
-	}
+      logger.error(e.getMessage(), e);
 
-	public void setRiverRepository(RiverRepository riverRepository) {
-		this.riverRepository = riverRepository;
-	}
+      String subject = "Errors when collecting data.";
+      String message = builder.toString();
+      for (Notifier notifier : notifiers)
+        notifier.notifyAdmin(subject, message);
+    }
+  }
 
-	public void setRiverStatusRepository(RiverStatusRepository riverStatusRepository) {
-		this.riverStatusRepository = riverStatusRepository;
-	}
+  @Scheduled(fixedDelay = 1800000)
+  public void analyzeData() {
+    List<River> riversInDanger = riverRepository.selectRiversInDanger();
+    if (!riversInDanger.isEmpty()) {
+      List<User> users = userRepository.selectUsersWithEmailAlert();
+      List<String> contacts = new ArrayList<>();
+      users.forEach((u) -> contacts.add(u.getEmail()));
 
-	public void setUserRepository(UserRepository userRepository) {
-		this.userRepository = userRepository;
-	}
+      logger.warn("Rivers in danger: " + riversInDanger);
+      for (Notifier notifier : notifiers)
+        notifier.warnAboutFlood(contacts, riversInDanger);
+    }
 
-	public void setCollector(DataCollector collector) {
-		this.collector = collector;
-	}
+  }
 
-	public void addNotifier(Notifier notifier) {
-		notifiers.add(notifier);
-	}
+  public RiverRepository getRiverRepository() {
+    return riverRepository;
+  }
 
-	public void removeNotifier(Notifier notifier) {
-		notifiers.remove(notifier);
-	}
+  public RiverStatusRepository getRiverStatusRepository() {
+    return riverStatusRepository;
+  }
 
-	@Override
-	public void onStartup(ServletContext servletContext)
-			throws ServletException {
-		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-		context.register(AppConfig.class);
-		servletContext.addListener(new ContextLoaderListener(context));
-		ServletRegistration.Dynamic dispatcher = servletContext.addServlet(
-				"DispatcherServlet", new DispatcherServlet(context));
-		dispatcher.setLoadOnStartup(1);
-		dispatcher.addMapping("/*");
-	}
+  public UserRepository getUserRepository() {
+    return userRepository;
+  }
 
-	@PostConstruct
-	public void postConstruct() {
-		riverRepository.createRiverTableIfNotExists();
-		riverStatusRepository.createRiverStatusTableIfNotExists();
-		userRepository.createUserTableIfNotExists();
-	}
+  public DataCollector getCollector() {
+    return collector;
+  }
 
-	@Scheduled(fixedDelay = 600000)
-	public void collectData() {
-		try {
-			collector.collect();
-		} catch (IOException | ParseException e) {
-			StringBuilder builder = new StringBuilder();
-			builder.append("Errors occured.\n");
-			builder.append("Exception: " + e.getClass() + "\n");
-			builder.append("Message: " + e.getMessage() + "\n");
-			builder.append("Date: " + new Date() + "\n");
-			builder.append("\nStackTrace:\n");
+  public List<Notifier> getNotifiers() {
+    return notifiers;
+  }
 
-			StringWriter stackTrace = new StringWriter();
-			e.printStackTrace(new PrintWriter(stackTrace));
-			builder.append(stackTrace + "\n");
+  public void setRiverRepository(RiverRepository riverRepository) {
+    this.riverRepository = riverRepository;
+  }
 
-			logger.error(e.getMessage(), e);
+  public void setRiverStatusRepository(RiverStatusRepository riverStatusRepository) {
+    this.riverStatusRepository = riverStatusRepository;
+  }
 
-			String subject = "Errors when collecting data.";
-			String message = builder.toString();
-			for (Notifier notifier : notifiers)
-				notifier.notifyAdmin(subject, message);
-		}
-	}
+  public void setUserRepository(UserRepository userRepository) {
+    this.userRepository = userRepository;
+  }
 
-	@Scheduled(fixedDelay = 1800000)
-	public void analizeData() {
-		List<River> riversInDanger = riverRepository.selectRiversInDanger();
-		if (!riversInDanger.isEmpty()) {
-			List<User> users = userRepository.selectUsersWithEmailAlert();
-			List<String> contacts = new ArrayList<>();
-			users.forEach((u) -> contacts.add(u.getEmail()));
+  public void setCollector(DataCollector collector) {
+    this.collector = collector;
+  }
 
-			String subject = "Ostrzeżenie o zagrożeniu powodziowym.";
-			String message = buildMessage(riversInDanger);
+  public void addNotifier(Notifier notifier) {
+    notifiers.add(notifier);
+  }
 
-			logger.warn(message);
-			for (Notifier notifier : notifiers)
-				notifier.notifyEveryone(contacts, subject, message);
-		}
+  public void removeNotifier(Notifier notifier) {
+    notifiers.remove(notifier);
+  }
 
-	}
-
-	private String buildMessage(List<River> rivers) {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Uwaga.\n");
-		builder.append("Stan zagrożenia powodziowego na rzekach:\n");
-		rivers.forEach((river) -> builder.append(buildRiverInfo(river)));
-		return builder.toString();
-	}
-
-	private String buildRiverInfo(River river) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(" * " + river.getDescription());
-		builder.append(", obecny poziom: " + riverLevel(river.getId()) + "cm");
-		builder.append(", poziom powodziowy: " + river.getFloodLevel() + "cm");
-		builder.append(", poziom alarmowy: " + river.getAlertLevel() + "cm.\n");
-		return builder.toString();
-	}
-
-	private int riverLevel(int riverId) {
-		List<RiverStatus> list = riverStatusRepository.selectLastRiverStatusesByRiverIdLimit(
-				riverId, 1);
-		return list.get(0).getLevel();
-	}
 }

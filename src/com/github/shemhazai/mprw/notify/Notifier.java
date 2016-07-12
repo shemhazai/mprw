@@ -2,10 +2,13 @@ package com.github.shemhazai.mprw.notify;
 
 import java.util.List;
 
+import com.github.shemhazai.mprw.domain.River;
+
 public interface Notifier {
-	public void notifyOne(String contact, String title, String message);
 
-	public void notifyAdmin(String title, String message);
+  void warnAboutFlood(List<String> contacts, List<River> rivers);
 
-	public void notifyEveryone(List<String> contacts, String title, String message);
+  void sendVerifyLink(String contact, String link);
+
+  void notifyAdmin(String title, String message);
 }

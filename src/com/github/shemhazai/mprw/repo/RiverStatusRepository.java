@@ -6,23 +6,24 @@ import java.util.List;
 import com.github.shemhazai.mprw.domain.RiverStatus;
 
 public interface RiverStatusRepository {
-	public void createRiverStatusTableIfNotExists();
+  void createRiverStatusTableIfNotExists();
 
-	public RiverStatus selectRiverStatusById(int id);
+  RiverStatus selectRiverStatusById(int id);
 
-	public List<RiverStatus> selectAllRiverStatuses();
+  List<RiverStatus> selectAllRiverStatuses();
 
-	public List<RiverStatus> selectAllRiverStatusesByRiverId(int riverId);
+  List<RiverStatus> selectAllRiverStatusesByRiverId(int riverId);
 
-	public List<RiverStatus> selectLastRiverStatusesByRiverIdLimit(int riverId, int limit);
+  List<RiverStatus> selectLastRiverStatusesByRiverIdLimit(int riverId, int limit);
 
-	public List<RiverStatus> selectLastAverageRiverStatusesByRiverIdWithIntervalLimit(int riverId, String interval, int limit);
+  List<RiverStatus> selectLastAverageRiverStatusesByRiverIdWithIntervalLimit(int riverId,
+      String interval, int limit);
 
-	public boolean existsRiverStatusWithRiverIdAndDate(int riverId, Date date);
+  boolean existsRiverStatusWithRiverIdAndDate(int riverId, Date date);
 
-	public RiverStatus createRiverStatus(int riverId);
+  RiverStatus createRiverStatus(int riverId);
 
-	public void updateRiverStatus(int id, RiverStatus riverStatus);
+  void updateRiverStatus(int id, RiverStatus riverStatus);
 
-	public void deleteRiverStatus(int id);
+  void deleteRiverStatus(int id);
 }

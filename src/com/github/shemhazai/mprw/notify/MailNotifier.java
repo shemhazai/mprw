@@ -14,111 +14,125 @@ import javax.mail.internet.MimeMessage.RecipientType;
 
 import org.apache.log4j.Logger;
 
+import com.github.shemhazai.mprw.ResourceLoader;
+import com.github.shemhazai.mprw.domain.River;
+
 public class MailNotifier implements Notifier {
 
-	private Logger logger = Logger.getLogger(getClass());
-	private Properties props;
-	private String adminEmail;
-	private String email;
-	private String login;
-	private String password;
+  private Logger logger = Logger.getLogger(getClass());
+  private Properties props;
+  private String adminEmail;
+  private String email;
+  private String login;
+  private String password;
 
-	public MailNotifier() {
+  public MailNotifier() {
 
-	}
+  }
 
-	public Properties getProperties() {
-		return props;
-	}
+  private Session createSession() {
+    return Session.getInstance(props, new Authenticator() {
+      @Override
+      protected PasswordAuthentication getPasswordAuthentication() {
+        return new PasswordAuthentication(login, password);
+      }
+    });
+  }
 
-	public String getAdminEmail() {
-		return adminEmail;
-	}
+  @Override
+  public void notifyAdmin(String subject, String text) {
+    try {
+      Session session = createSession();
+      MimeMessage message = new MimeMessage(session);
+      message.setFrom(new InternetAddress(email));
+      message.setSubject(subject);
+      message.setText(text);
+      message.setRecipient(Message.RecipientType.TO, new InternetAddress(adminEmail));
 
-	public String getEmail() {
-		return email;
-	}
+      Transport.send(message);
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+    }
+  }
 
-	public String getLogin() {
-		return login;
-	}
+  @Override
+  public void warnAboutFlood(List<String> contacts, List<River> rivers) {
+    try {
+      Session session = createSession();
+      MimeMessage message = new MimeMessage(session);
+      message.setFrom(new InternetAddress(email));
+      message.setSubject("Ostrzeżenie o zagrożeniu powodziowym");
 
-	public String getPassword() {
-		return password;
-	}
+      String text = new ResourceLoader().readFile("warnAboutFlood.html");
+      message.setText(text, "utf-8", "html");
 
-	public void setProperties(Properties props) {
-		this.props = props;
-	}
+      for (String recipient : contacts) {
+        InternetAddress address = new InternetAddress(recipient);
+        message.addRecipient(RecipientType.CC, address);
+      }
 
-	public void setAdminEmail(String adminEmail) {
-		this.adminEmail = adminEmail;
-	}
+      Transport.send(message);
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+    }
+  }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+  @Override
+  public void sendVerifyLink(String contact, String link) {
+    try {
+      Session session = createSession();
+      MimeMessage message = new MimeMessage(session);
+      message.setFrom(new InternetAddress(email));
+      message.setSubject("Aktywacja konta w mprw.pl");
+      message.setRecipient(Message.RecipientType.TO, new InternetAddress(contact));
 
-	public void setLogin(String login) {
-		this.login = login;
-	}
+      String text = new ResourceLoader().readFile("sendVerifyLink.html");
+      text = text.replaceFirst("###LINK###", link);
+      message.setText(text, "utf-8", "html");
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+      Transport.send(message);
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+    }
+  }
 
-	@Override
-	public void notifyOne(String contact, String subject, String text) {
-		try {
-			Message message = createMessage(subject, text);
-			InternetAddress address = new InternetAddress(contact);
-			message.setRecipient(Message.RecipientType.TO, address);
+  public Properties getProperties() {
+    return props;
+  }
 
-			Transport.send(message);
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
-	}
+  public String getAdminEmail() {
+    return adminEmail;
+  }
 
-	@Override
-	public void notifyAdmin(String subject, String message) {
-		notifyOne(adminEmail, subject, message);
-	}
+  public String getEmail() {
+    return email;
+  }
 
-	@Override
-	public void notifyEveryone(List<String> contacts, String subject, String text) {
-		try {
-			Message message = createMessage(subject, text);
-			message.setRecipient(Message.RecipientType.TO,
-					new InternetAddress(adminEmail));
+  public String getLogin() {
+    return login;
+  }
 
-			for (String recipient : contacts) {
-				InternetAddress address = new InternetAddress(recipient);
-				message.addRecipient(RecipientType.CC, address);
-			}
+  public String getPassword() {
+    return password;
+  }
 
-			Transport.send(message);
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
-	}
+  public void setProperties(Properties props) {
+    this.props = props;
+  }
 
-	private Message createMessage(String subject, String text)
-			throws Exception {
-		Session session = createSession();
-		Message message = new MimeMessage(session);
-		message.setFrom(new InternetAddress(email));
-		message.setSubject(subject);
-		message.setText(text);
-		return message;
-	}
+  public void setAdminEmail(String adminEmail) {
+    this.adminEmail = adminEmail;
+  }
 
-	private Session createSession() {
-		return Session.getInstance(props, new Authenticator() {
-			@Override
-			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication(login, password);
-			}
-		});
-	}
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public void setLogin(String login) {
+    this.login = login;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
 }
