@@ -18,7 +18,7 @@ import com.github.shemhazai.mprw.notify.MailNotifier;
 import com.github.shemhazai.mprw.notify.Notifier;
 
 @Configuration
-public class Beans2 {
+public class Beans {
 	@Bean
 	public JdbcTemplate jdbcTemplate() {
 		return new JdbcTemplate(dataSource());

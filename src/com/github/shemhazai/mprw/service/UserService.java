@@ -4,6 +4,7 @@ import javax.security.sasl.AuthenticationException;
 
 import com.github.shemhazai.mprw.domain.Token;
 import com.github.shemhazai.mprw.domain.User;
+import com.github.shemhazai.mprw.domain.UserContact;
 import com.github.shemhazai.mprw.domain.UserUpdateRequest;
 
 public interface UserService {
@@ -22,6 +23,6 @@ public interface UserService {
   boolean isVerified(String email);
 
   boolean isTokenRegistered(Token token);
-  
-  boolean contact(String name, String email, String message);
+
+  boolean contact(UserContact contact);
 }

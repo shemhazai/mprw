@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.github.shemhazai.mprw.controller.UserController;
 import com.github.shemhazai.mprw.domain.Token;
 import com.github.shemhazai.mprw.domain.User;
+import com.github.shemhazai.mprw.domain.UserContact;
 import com.github.shemhazai.mprw.domain.UserUpdateRequest;
 import com.github.shemhazai.mprw.notify.MailNotifier;
 import com.github.shemhazai.mprw.repo.UserRepository;
@@ -159,8 +160,8 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public boolean contact(String name, String email, String message) {
-    return mailNotifier.contact(name, email, message);
+  public boolean contact(UserContact contact) {
+    return mailNotifier.contact(contact);
   }
 
   public void setUserRepository(UserRepository userRepository) {

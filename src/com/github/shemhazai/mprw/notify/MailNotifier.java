@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 
 import com.github.shemhazai.mprw.ResourceLoader;
 import com.github.shemhazai.mprw.domain.River;
+import com.github.shemhazai.mprw.domain.UserContact;
 
 public class MailNotifier implements Notifier {
 
@@ -96,18 +97,18 @@ public class MailNotifier implements Notifier {
     }
   }
 
-  public boolean contact(String name, String email, String message) {
+  public boolean contact(UserContact contact) {
     try {
       Session session = createSession();
       MimeMessage mimeMessage = new MimeMessage(session);
       mimeMessage.setFrom(new InternetAddress(email));
-      mimeMessage.setSubject("Aktywacja konta w mprw.pl");
+      mimeMessage.setSubject("Wiadomość od " + contact.getName());
       mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(adminEmail));
 
       String text = new ResourceLoader().readFile("contact.html");
-      text = text.replace("###NAME###", name);
-      text = text.replace("###EMAIL###", email);
-      text = text.replaceAll("###MESSAGE###", message);
+      text = text.replace("###NAME###", contact.getName());
+      text = text.replace("###EMAIL###", contact.getEmail());
+      text = text.replaceAll("###MESSAGE###", contact.getMessage());
       mimeMessage.setText(text, "utf-8", "html");
 
       Transport.send(mimeMessage);

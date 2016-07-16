@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.github.shemhazai.mprw.domain.Token;
 import com.github.shemhazai.mprw.domain.User;
+import com.github.shemhazai.mprw.domain.UserContact;
 import com.github.shemhazai.mprw.domain.UserUpdateRequest;
 import com.github.shemhazai.mprw.service.UserService;
 
@@ -76,9 +77,8 @@ public class UserController {
   }
 
   @RequestMapping(value = "/contact", method = RequestMethod.POST)
-  public String contact(String name, String email, String message) {
-    boolean result = userService.contact(name, email, message);
-    if (result)
+  public String contact(@RequestBody UserContact contact) {
+    if (userService.contact(contact))
       return TRUE;
     return FALSE;
   }
