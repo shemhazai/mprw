@@ -158,6 +158,11 @@ public class UserServiceImpl implements UserService {
     return authenticationManager.isTokenRegistered(token);
   }
 
+  @Override
+  public boolean contact(String name, String email, String message) {
+    return mailNotifier.contact(name, email, message);
+  }
+
   public void setUserRepository(UserRepository userRepository) {
     this.userRepository = userRepository;
   }
@@ -185,4 +190,6 @@ public class UserServiceImpl implements UserService {
   public void setVerificationManager(VerificationManager verificationManager) {
     this.verificationManager = verificationManager;
   }
+
+
 }

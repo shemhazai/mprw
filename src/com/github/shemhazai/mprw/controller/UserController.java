@@ -75,6 +75,14 @@ public class UserController {
     return FALSE;
   }
 
+  @RequestMapping(value = "/contact", method = RequestMethod.POST)
+  public String contact(String name, String email, String message) {
+    boolean result = userService.contact(name, email, message);
+    if (result)
+      return TRUE;
+    return FALSE;
+  }
+
   public UserService getUserService() {
     return userService;
   }

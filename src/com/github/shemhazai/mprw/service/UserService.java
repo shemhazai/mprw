@@ -22,4 +22,6 @@ public interface UserService {
   boolean isVerified(String email);
 
   boolean isTokenRegistered(Token token);
+  
+  boolean contact(String name, String email, String message);
 }
