@@ -54,11 +54,8 @@ public class UserServiceImpl implements UserService {
   }
 
   private boolean isValid(User user) {
-    if (isNull(user)) {
-      System.out.println(user);
-      System.out.println("NULLL");
+    if (isNull(user))
       return false;
-    }
 
     if (!userExists(user.getEmail()))
       return false;
