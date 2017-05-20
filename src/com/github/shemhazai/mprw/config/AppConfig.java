@@ -15,8 +15,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @ComponentScan(basePackages = {"com.github.shemhazai.mprw"})
 public class AppConfig extends WebMvcConfigurerAdapter {
 
-  @Override
-  public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
-    configurer.enable();
-  };
+    @Override
+    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+        configurer.enable();
+    }
+
+    ;
 }

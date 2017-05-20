@@ -1,23 +1,21 @@
 package com.github.shemhazai.mprw.repo;
 
-import java.util.List;
-
 import com.github.shemhazai.mprw.domain.River;
 
+import java.util.List;
+
 public interface RiverRepository {
-  void createRiverTableIfNotExists();
+    River selectRiverById(int id);
 
-  River selectRiverById(int id);
+    River selectRiverByName(String name);
 
-  River selectRiverByName(String name);
+    List<River> selectAllRivers();
 
-  List<River> selectAllRivers();
+    List<River> selectRiversInDanger();
 
-  List<River> selectRiversInDanger();
+    River createRiver(String name);
 
-  River createRiver(String name);
+    void updateRiver(int id, River river);
 
-  void updateRiver(int id, River river);
-
-  void deleteRiver(int id);
+    void deleteRiver(int id);
 }

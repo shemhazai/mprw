@@ -4,5 +4,5 @@ import java.io.IOException;
 import java.text.ParseException;
 
 public interface DataCollector {
-  void collect() throws IOException, ParseException;
+    void collect() throws IOException, ParseException;
 }
