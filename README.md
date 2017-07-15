@@ -1,5 +1,2 @@
-# Monitoring powodziowy - rzeka Wielopolka
+# Flood monitoring - Wielopolka river.
 
-Monitorowanie stanu rzeki Wielopolka i wysyłanie powiadomień w sytuacji zagrożenia powodzią.
-
-[Link do strony www](https://mprw.pl)
